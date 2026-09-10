@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.venv/
+.env
+data/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.tsbuildinfo
+.openai/*
+!.openai/hosting.json
+artifacts/

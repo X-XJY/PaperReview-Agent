@@ -1,0 +1,611 @@
+{
+  "mode": "demo",
+  "papers": [
+    {
+      "id": "demo-atlas",
+      "filename": "atlas-example.pdf",
+      "metadata": {
+        "title": "Atlas-R · 双编码器检索增强生成",
+        "authors": [
+          "Synthetic Research Team"
+        ],
+        "year": 2020,
+        "venue": "原创教学样例 · 非真实论文",
+        "task": "知识密集型问答",
+        "evidence_ids": [
+          "demo-atlas-e1"
+        ]
+      },
+      "extraction": {
+        "method_name": "双编码器检索",
+        "methods": [
+          {
+            "id": "demo-atlas-method",
+            "text": "基于双编码器召回段落，将证据与问题拼接后生成答案。",
+            "evidence_ids": [
+              "demo-atlas-e2"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "advantages": [
+          {
+            "id": "demo-atlas-adv",
+            "text": "对检索段落进行人工证据集对照评估。",
+            "evidence_ids": [
+              "demo-atlas-e4"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "limitations": [
+          {
+            "id": "demo-atlas-limit",
+            "text": "仅在单一领域语料上评估，跨域迁移尚未验证。",
+            "evidence_ids": [
+              "demo-atlas-e3"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "future_work": [],
+        "evaluations": []
+      },
+      "classification": {
+        "task_ids": [
+          "task.qa.open"
+        ],
+        "method_ids": [
+          "method.retrieval.dense",
+          "method.fusion.context"
+        ],
+        "rationale": "教学用预置分类，非模型分析。",
+        "evidence_ids": [
+          "demo-atlas-e2"
+        ]
+      },
+      "evidence": [
+        {
+          "id": "demo-atlas-e1",
+          "paper_id": "demo-atlas",
+          "text": "Atlas-R · 双编码器检索增强生成\nSynthetic Research Team · 2020\nThis is an invented demonstration document, not a published paper.",
+          "page": 1,
+          "section": "示例元信息"
+        },
+        {
+          "id": "demo-atlas-e2",
+          "paper_id": "demo-atlas",
+          "text": "A dual encoder retrieves passages and concatenates them with the question before generation.",
+          "page": 2,
+          "section": "3 Method"
+        },
+        {
+          "id": "demo-atlas-e3",
+          "paper_id": "demo-atlas",
+          "text": "The system is evaluated on a single-domain collection; cross-domain transfer remains untested.",
+          "page": 3,
+          "section": "6 Limitations"
+        },
+        {
+          "id": "demo-atlas-e4",
+          "paper_id": "demo-atlas",
+          "text": "Compare the retrieved passages with a manually annotated evidence set.",
+          "page": 4,
+          "section": "4 Evaluation"
+        }
+      ],
+      "revision": 1,
+      "warnings": []
+    },
+    {
+      "id": "demo-fusion",
+      "filename": "fusion-example.pdf",
+      "metadata": {
+        "title": "Fusion-R · 多文档解码融合",
+        "authors": [
+          "Synthetic Research Team"
+        ],
+        "year": 2021,
+        "venue": "原创教学样例 · 非真实论文",
+        "task": "知识密集型问答",
+        "evidence_ids": [
+          "demo-fusion-e1"
+        ]
+      },
+      "extraction": {
+        "method_name": "多文档融合",
+        "methods": [
+          {
+            "id": "demo-fusion-method",
+            "text": "独立编码各个检索段落，在解码阶段融合多文档信息。",
+            "evidence_ids": [
+              "demo-fusion-e2"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "advantages": [
+          {
+            "id": "demo-fusion-adv",
+            "text": "在固定检索预算下提高证据覆盖。",
+            "evidence_ids": [
+              "demo-fusion-e4"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "limitations": [
+          {
+            "id": "demo-fusion-limit",
+            "text": "检索段落数量增加时，内存开销随之增长。",
+            "evidence_ids": [
+              "demo-fusion-e3"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "future_work": [
+          {
+            "id": "demo-fusion-future",
+            "text": "探索自适应段落选择。",
+            "evidence_ids": [
+              "demo-fusion-e3"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "evaluations": []
+      },
+      "classification": {
+        "task_ids": [
+          "task.qa.open"
+        ],
+        "method_ids": [
+          "method.fusion.decoder",
+          "method.retrieval.dense"
+        ],
+        "rationale": "教学用预置分类，非模型分析。",
+        "evidence_ids": [
+          "demo-fusion-e2"
+        ]
+      },
+      "evidence": [
+        {
+          "id": "demo-fusion-e1",
+          "paper_id": "demo-fusion",
+          "text": "Fusion-R · 多文档解码融合\nSynthetic Research Team · 2021\nThis is an invented demonstration document, not a published paper.",
+          "page": 1,
+          "section": "示例元信息"
+        },
+        {
+          "id": "demo-fusion-e2",
+          "paper_id": "demo-fusion",
+          "text": "We extend Atlas-R by encoding each passage independently and fusing representations in the decoder.",
+          "page": 2,
+          "section": "3 Method"
+        },
+        {
+          "id": "demo-fusion-e3",
+          "paper_id": "demo-fusion",
+          "text": "Memory use grows with the number of retrieved passages. We leave adaptive passage selection to future work.",
+          "page": 3,
+          "section": "6 Limitations"
+        },
+        {
+          "id": "demo-fusion-e4",
+          "paper_id": "demo-fusion",
+          "text": "At a fixed retrieval budget, independent passage encoding improves evidence coverage in our synthetic benchmark.",
+          "page": 4,
+          "section": "4 Evaluation"
+        }
+      ],
+      "revision": 1,
+      "warnings": []
+    },
+    {
+      "id": "demo-loop",
+      "filename": "loop-example.pdf",
+      "metadata": {
+        "title": "Loop-R · 迭代证据检索",
+        "authors": [
+          "Synthetic Research Team"
+        ],
+        "year": 2022,
+        "venue": "原创教学样例 · 非真实论文",
+        "task": "知识密集型问答",
+        "evidence_ids": [
+          "demo-loop-e1"
+        ]
+      },
+      "extraction": {
+        "method_name": "迭代检索",
+        "methods": [
+          {
+            "id": "demo-loop-method",
+            "text": "根据中间答案重写查询，通过多轮检索补充证据。",
+            "evidence_ids": [
+              "demo-loop-e2"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "advantages": [
+          {
+            "id": "demo-loop-adv",
+            "text": "在限定的双跳问题场景增加证据覆盖。",
+            "evidence_ids": [
+              "demo-loop-e4"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "limitations": [
+          {
+            "id": "demo-loop-limit",
+            "text": "错误的中间答案可能导致检索转向无关段落。",
+            "evidence_ids": [
+              "demo-loop-e3"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "future_work": [],
+        "evaluations": []
+      },
+      "classification": {
+        "task_ids": [
+          "task.qa.open"
+        ],
+        "method_ids": [
+          "method.retrieval.iterative",
+          "method.retrieval.rewrite"
+        ],
+        "rationale": "教学用预置分类，非模型分析。",
+        "evidence_ids": [
+          "demo-loop-e2"
+        ]
+      },
+      "evidence": [
+        {
+          "id": "demo-loop-e1",
+          "paper_id": "demo-loop",
+          "text": "Loop-R · 迭代证据检索\nSynthetic Research Team · 2022\nThis is an invented demonstration document, not a published paper.",
+          "page": 1,
+          "section": "示例元信息"
+        },
+        {
+          "id": "demo-loop-e2",
+          "paper_id": "demo-loop",
+          "text": "Loop-R retrieves again using an intermediate answer as a reformulated query.",
+          "page": 2,
+          "section": "3 Method"
+        },
+        {
+          "id": "demo-loop-e3",
+          "paper_id": "demo-loop",
+          "text": "An incorrect intermediate answer may redirect retrieval to irrelevant passages.",
+          "page": 3,
+          "section": "6 Limitations"
+        },
+        {
+          "id": "demo-loop-e4",
+          "paper_id": "demo-loop",
+          "text": "Additional retrieval rounds increase evidence coverage on two-hop questions in this controlled setting.",
+          "page": 4,
+          "section": "4 Evaluation"
+        }
+      ],
+      "revision": 1,
+      "warnings": []
+    },
+    {
+      "id": "demo-reflect",
+      "filename": "reflect-example.pdf",
+      "metadata": {
+        "title": "Reflect-R · 反思驱动的生成",
+        "authors": [
+          "Synthetic Research Team"
+        ],
+        "year": 2023,
+        "venue": "原创教学样例 · 非真实论文",
+        "task": "知识密集型问答",
+        "evidence_ids": [
+          "demo-reflect-e1"
+        ]
+      },
+      "extraction": {
+        "method_name": "自反思生成",
+        "methods": [
+          {
+            "id": "demo-reflect-method",
+            "text": "在每轮检索前引入反思判断，决定是否继续检索。",
+            "evidence_ids": [
+              "demo-reflect-e2"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "advantages": [
+          {
+            "id": "demo-reflect-adv",
+            "text": "跳过不必要的检索，减少检索调用。",
+            "evidence_ids": [
+              "demo-reflect-e4"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "limitations": [
+          {
+            "id": "demo-reflect-limit",
+            "text": "反思分类器需要标注样本，在领域偏移下可能失效。",
+            "evidence_ids": [
+              "demo-reflect-e3"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "future_work": [],
+        "evaluations": []
+      },
+      "classification": {
+        "task_ids": [
+          "task.qa.open"
+        ],
+        "method_ids": [
+          "method.control.reflect",
+          "method.control.adaptive"
+        ],
+        "rationale": "教学用预置分类，非模型分析。",
+        "evidence_ids": [
+          "demo-reflect-e2"
+        ]
+      },
+      "evidence": [
+        {
+          "id": "demo-reflect-e1",
+          "paper_id": "demo-reflect",
+          "text": "Reflect-R · 反思驱动的生成\nSynthetic Research Team · 2023\nThis is an invented demonstration document, not a published paper.",
+          "page": 1,
+          "section": "示例元信息"
+        },
+        {
+          "id": "demo-reflect-e2",
+          "paper_id": "demo-reflect",
+          "text": "Building on Loop-R, we add a reflection decision before each additional retrieval step.",
+          "page": 2,
+          "section": "3 Method"
+        },
+        {
+          "id": "demo-reflect-e3",
+          "paper_id": "demo-reflect",
+          "text": "The reflection classifier requires labeled examples and can fail under domain shift.",
+          "page": 3,
+          "section": "6 Limitations"
+        },
+        {
+          "id": "demo-reflect-e4",
+          "paper_id": "demo-reflect",
+          "text": "Skipping unnecessary retrieval reduces the number of retrieval calls in this evaluation.",
+          "page": 4,
+          "section": "4 Evaluation"
+        }
+      ],
+      "revision": 1,
+      "warnings": []
+    },
+    {
+      "id": "demo-verify",
+      "filename": "verify-example.pdf",
+      "metadata": {
+        "title": "Verify-R · 引用支持核验",
+        "authors": [
+          "Synthetic Research Team"
+        ],
+        "year": 2024,
+        "venue": "原创教学样例 · 非真实论文",
+        "task": "知识密集型问答",
+        "evidence_ids": [
+          "demo-verify-e1"
+        ]
+      },
+      "extraction": {
+        "method_name": "证据支持核验",
+        "methods": [
+          {
+            "id": "demo-verify-method",
+            "text": "将生成结论与段落配对，核验文本是否支持该结论。",
+            "evidence_ids": [
+              "demo-verify-e2"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "advantages": [
+          {
+            "id": "demo-verify-adv",
+            "text": "将不受支持的陈述标记给人工审核。",
+            "evidence_ids": [
+              "demo-verify-e4"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "limitations": [
+          {
+            "id": "demo-verify-limit",
+            "text": "文本支持关系不能证明来源段落本身的事实正确性。",
+            "evidence_ids": [
+              "demo-verify-e3"
+            ],
+            "kind": "author_statement",
+            "status": "supported",
+            "reason": "示例核验状态，仅用于演示交互。"
+          }
+        ],
+        "future_work": [],
+        "evaluations": []
+      },
+      "classification": {
+        "task_ids": [
+          "task.qa.open"
+        ],
+        "method_ids": [
+          "method.control.verify",
+          "method.control.citation"
+        ],
+        "rationale": "教学用预置分类，非模型分析。",
+        "evidence_ids": [
+          "demo-verify-e2"
+        ]
+      },
+      "evidence": [
+        {
+          "id": "demo-verify-e1",
+          "paper_id": "demo-verify",
+          "text": "Verify-R · 引用支持核验\nSynthetic Research Team · 2024\nThis is an invented demonstration document, not a published paper.",
+          "page": 1,
+          "section": "示例元信息"
+        },
+        {
+          "id": "demo-verify-e2",
+          "paper_id": "demo-verify",
+          "text": "Each generated statement is paired with a passage and checked for textual support.",
+          "page": 2,
+          "section": "3 Method"
+        },
+        {
+          "id": "demo-verify-e3",
+          "paper_id": "demo-verify",
+          "text": "Textual support does not establish that the source passage itself is factually correct.",
+          "page": 3,
+          "section": "6 Limitations"
+        },
+        {
+          "id": "demo-verify-e4",
+          "paper_id": "demo-verify",
+          "text": "Unsupported statements are flagged for manual review rather than silently accepted.",
+          "page": 4,
+          "section": "4 Evaluation"
+        }
+      ],
+      "revision": 1,
+      "warnings": []
+    }
+  ],
+  "failures": [],
+  "synthesis": {
+    "summary": [
+      {
+        "id": "summary-1",
+        "text": "这组教学样例依次展示了稠密检索、多文档融合、迭代检索、反思控制和引用核验。时间顺序不自动构成继承关系。",
+        "evidence_ids": [
+          "demo-atlas-e2",
+          "demo-fusion-e2",
+          "demo-loop-e2",
+          "demo-reflect-e2",
+          "demo-verify-e2"
+        ],
+        "kind": "inference",
+        "status": "supported",
+        "reason": "教学示例。"
+      }
+    ],
+    "relations": [
+      {
+        "source": "demo-atlas",
+        "target": "demo-fusion",
+        "type": "improves",
+        "scope": "独立编码段落并在解码阶段融合",
+        "evidence_ids": [
+          "demo-fusion-e2"
+        ],
+        "status": "supported"
+      },
+      {
+        "source": "demo-loop",
+        "target": "demo-reflect",
+        "type": "improves",
+        "scope": "在迭代检索前增加反思决策",
+        "evidence_ids": [
+          "demo-reflect-e2"
+        ],
+        "status": "supported"
+      }
+    ],
+    "directions": [
+      {
+        "id": "direction-1",
+        "title": "让检索预算随证据需求变化",
+        "problem": "多文档融合的内存开销与额外检索调用需要控制。",
+        "hypothesis": "依据证据覆盖动态选择段落和检索轮数，可能在相近回答质量下减少开销。",
+        "reasoning": "Fusion-R 指出段落数量带来的内存问题；Reflect-R 展示检索调用可以按需跳过。这只构成实验动机。",
+        "experiment": "固定生成模型与数据划分，对比固定段落数和自适应策略；记录答案质量、证据覆盖、内存和检索调用次数。",
+        "failure_condition": "若覆盖率显著下降或控制器自身成本抵消节省，则假设不成立。",
+        "evidence_ids": [
+          "demo-fusion-e3",
+          "demo-reflect-e4"
+        ],
+        "status": "supported",
+        "reason": "示例中前提有依据；假设尚未验证。"
+      },
+      {
+        "id": "direction-2",
+        "title": "检索链错误的早期识别",
+        "problem": "中间答案错误可能污染后续检索，反思判断也可能受领域变化影响。",
+        "hypothesis": "在新一轮检索前增加原文支持检查，可能降低错误传播。",
+        "reasoning": "将 Loop-R 的错误传播风险与 Verify-R 的支持核验思路组合，尚需验证域外表现。",
+        "experiment": "构造正确与错误中间答案两组，测量错误检索率、最终正确率与额外时延，并加入域外测试。",
+        "failure_condition": "检查器无法识别错误，或引入过多误拒绝。",
+        "evidence_ids": [
+          "demo-loop-e3",
+          "demo-verify-e2",
+          "demo-reflect-e3"
+        ],
+        "status": "partial",
+        "reason": "组合策略的可行性仍需实验。"
+      }
+    ],
+    "common_gaps": [
+      {
+        "method": "双编码器检索 / 反思控制",
+        "limitation": "域外适用性仍需验证",
+        "idea": "设置领域迁移测试，并单独评价检索器与控制器。",
+        "evidence_ids": [
+          "demo-atlas-e3",
+          "demo-reflect-e3"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+.git
+.env
+.venv
+node_modules
+data
+artifacts
+.openai
+__pycache__
+.pytest_cache
+dist
