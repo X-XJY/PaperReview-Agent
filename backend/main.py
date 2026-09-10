@@ -58,7 +58,7 @@ def public(job):
     return {k:v for k,v in job.items() if k not in ('session','payload')}
 
 def pipeline_signature():
-    return db.digest({'version':VERSION,'ontology':ONTOLOGY,'model':os.getenv('LLM_MODEL'),'base':os.getenv('LLM_BASE_URL'),'structured':os.getenv('LLM_JSON_SCHEMA')})
+    return db.digest({'version':VERSION,'ontology':ONTOLOGY,'model':os.getenv('LLM_MODEL'),'base':os.getenv('LLM_BASE_URL'),'structured':os.getenv('LLM_JSON_SCHEMA'),'thinking':os.getenv('LLM_THINKING'),'max_tokens':os.getenv('LLM_MAX_OUTPUT_TOKENS','10000')})
 
 @app.get('/api/session')
 def create_session(request: Request, response: Response):

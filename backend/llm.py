@@ -23,7 +23,11 @@ def strict_schema(value):
 def call(stage, data, schema, job_id):
     model = os.getenv('LLM_MODEL','')
     base = os.getenv('LLM_BASE_URL','').rstrip('/')
-    key = db.digest({'stage':stage,'data':data,'schema':schema.model_json_schema(),'prompt':PROMPTS[stage], 'version':VERSION,'model':model,'base':base,'temperature':0,'format':os.getenv('LLM_JSON_SCHEMA')})
+    thinking = os.getenv('LLM_THINKING', '').strip()
+    if thinking not in ('', 'enabled', 'disabled'):
+        raise ProviderError('LLM_THINKING 必须为空、enabled 或 disabled。')
+    max_tokens = int(os.getenv('LLM_MAX_OUTPUT_TOKENS', '10000'))
+    key = db.digest({'stage':stage,'data':data,'schema':schema.model_json_schema(),'prompt':PROMPTS[stage], 'version':VERSION,'model':model,'base':base,'temperature':0,'format':os.getenv('LLM_JSON_SCHEMA'),'thinking':thinking,'max_tokens':max_tokens})
     cached = db.cache_get(key, job_id)
     if cached is not None:
         return schema.model_validate(cached)
@@ -40,8 +44,11 @@ def call(stage, data, schema, job_id):
         if os.getenv('LLM_JSON_SCHEMA','false').lower() == 'true':
             fmt = {'type':'json_schema','json_schema':{'name':stage,'strict':True,'schema':strict_schema(schema.model_json_schema())}}
         try:
+            payload = {'model':model,'messages':messages,'temperature':0,'response_format':fmt,'max_tokens':max_tokens}
+            if thinking:
+                payload['thinking'] = {'type':thinking}
             with httpx.Client(timeout=180) as client:
-                response = client.post(base+'/chat/completions', headers={'Authorization':'Bearer '+os.getenv('LLM_API_KEY','')}, json={'model':model,'messages':messages,'temperature':0,'response_format':fmt,'max_tokens':10000})
+                response = client.post(base+'/chat/completions', headers={'Authorization':'Bearer '+os.getenv('LLM_API_KEY','')}, json=payload)
             if response.status_code == 429 or response.status_code >= 500:
                 if attempt < 2:
                     time.sleep(2 ** attempt)
@@ -52,7 +59,10 @@ def call(stage, data, schema, job_id):
             usage = body.get('usage', {})
             with db.connection() as conn:
                 conn.execute('UPDATE jobs SET input_tokens=input_tokens+?, output_tokens=output_tokens+? WHERE id=?', (usage.get('prompt_tokens',0),usage.get('completion_tokens',0),job_id))
-            content = body['choices'][0]['message']['content']
+            choice = body['choices'][0]
+            if choice.get('finish_reason') == 'length':
+                raise ProviderError('模型输出达到长度上限，未接受不完整 JSON。请提高 LLM_MAX_OUTPUT_TOKENS，或对支持的模型设置 LLM_THINKING=disabled 后重试。')
+            content = choice['message']['content']
             parsed = schema.model_validate_json(content, strict=True)
             db.cache_put(key, parsed.model_dump())
             return parsed

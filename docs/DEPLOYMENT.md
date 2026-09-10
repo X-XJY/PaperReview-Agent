@@ -8,7 +8,7 @@
 
 1. 开发电脑执行 `npm ci`、`npm run build`，将已提交源码和 `dist/` 上传到 `/home/ubuntu/PaperReview-Agent`。
 2. 服务器安装 `python3-venv nginx`，在项目内执行 `python3 -m venv .venv` 和 `.venv/bin/pip install -r requirements.txt`。
-3. 单独创建 `.env`，填入供应商密钥并 `chmod 600 .env`。不得放入源码仓库。模型名称以供应商账号返回为准；本次验证使用 `deepseek-flash`，`LLM_JSON_SCHEMA=false`。
+3. 单独创建 `.env`，填入供应商密钥并 `chmod 600 .env`。不得放入源码仓库。模型名称以供应商账号返回为准；本次验证使用 `deepseek-flash`，`LLM_JSON_SCHEMA=false`、`LLM_THINKING=disabled`、`LLM_MAX_OUTPUT_TOKENS=16000`。关闭该模型默认思考模式，避免思考消耗输出预算导致 JSON 截断；其他供应商保持 `LLM_THINKING` 为空。
 4. `deploy/*.service` 默认用户为 `ubuntu`、目录为上述路径；换服务器时同步调整。复制 API 和 worker 单元到 `/etc/systemd/system/`，执行 `sudo systemctl daemon-reload`、`sudo systemctl enable --now paperreview-api paperreview-worker`。
 5. 将 `deploy/nginx-http.conf` 安装到 `/etc/nginx/sites-available/default`，先 `sudo nginx -t`，再 reload。配置已含请求限流和上传大小限制。
 

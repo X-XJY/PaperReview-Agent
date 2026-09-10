@@ -39,6 +39,8 @@ npm ci
 | `LLM_API_KEY` | 模型服务密钥，仅后端使用 |
 | `LLM_MODEL` | 账号实际可用的模型 ID |
 | `LLM_JSON_SCHEMA` | 供应商支持严格 JSON Schema 时设为 true；否则使用 JSON mode |
+| `LLM_THINKING` | DeepSeek 可设置 `disabled`，避免思考占满 JSON 输出预算；其他供应商留空 |
+| `LLM_MAX_OUTPUT_TOKENS` | 单次输出上限，默认 10000；本次部署使用 16000 |
 
 分别打开三个终端：
 
