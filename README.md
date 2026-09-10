@@ -121,7 +121,7 @@ tests/               接口、证据、缓存及完整 mock 流程测试
 docs/                架构说明与人工评测方案
 ```
 
-自动测试使用 mock 外部 API；真实 MinerU 任务创建和 DeepSeek JSON 接口已验证。真实论文效果仍需要按照 [评测方案](docs/EVALUATION.md) 进行人工评测，不以连通性测试代替科研质量验证。详情见 [架构](docs/ARCHITECTURE.md)。
+自动测试使用 mock 外部 API；已通过真实 MinerU + DeepSeek 单篇 RAG 论文端到端分析、报告导出与缓存验证，见 [部署验收记录](docs/SMOKE_TEST.md)。真实多论文效果仍需要按照 [评测方案](docs/EVALUATION.md) 进行人工评测，不以连通性测试代替科研质量验证。详情见 [架构](docs/ARCHITECTURE.md)。
 
 ## 参考与开源
 
