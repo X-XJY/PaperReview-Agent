@@ -11,6 +11,9 @@
 
 ## 运行依赖
 
+- AI 助教仅参考 [kotaemon](https://github.com/Cinnamon/kotaemon) 的引用交互、[OpenTutor](https://github.com/zijinz456/OpenTutor) 与 [Socratic Tutor](https://github.com/utsabpanta/ai-tutoring) 的教学流程、[AnythingLLM](https://github.com/Mintplex-Labs/anything-llm) 和 [Open WebUI](https://github.com/open-webui/open-webui) 的会话界面思路，未复制上述项目源码或 Prompt。
+- rank-bm25：Apache-2.0；NumPy：BSD-3-Clause；react-markdown、remark-math、rehype-katex、KaTeX：MIT。保留安装包及字体中相应许可证。
+
 - React / React DOM、Vite、TypeScript、Lucide：MIT / ISC 等原项目许可证，详见安装包内 LICENSE。
 - Apache ECharts / zrender：Apache-2.0 / BSD-3-Clause，详见安装包内 LICENSE。
 - FastAPI、Pydantic、HTTPX、python-dotenv、pytest：MIT 等许可证。

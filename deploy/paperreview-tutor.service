@@ -1,0 +1,19 @@
+[Unit]
+Description=PaperReview tutor worker
+After=network-online.target paperreview-api.service
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/PaperReview-Agent
+EnvironmentFile=/home/ubuntu/PaperReview-Agent/.env
+ExecStart=/home/ubuntu/PaperReview-Agent/.venv/bin/python -m backend.tutor_worker
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

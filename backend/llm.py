@@ -29,26 +29,44 @@ def strict_schema(value):
         result['additionalProperties'] = False
     return result
 
-def call(stage, data, schema, job_id):
+class AnalysisMeter:
+    scope = ''
+    def __init__(self, job_id):
+        self.job_id = job_id
+    def before_call(self, max_tokens, input_bytes=0):
+        with db.connection() as conn:
+            conn.execute('BEGIN IMMEDIATE')
+            row = conn.execute('SELECT calls FROM jobs WHERE id=?', (self.job_id,)).fetchone()
+            if not row or row['calls'] >= int(os.getenv('LLM_MAX_CALLS_PER_JOB','100')):
+                raise ProviderError('本次任务已达到模型调用上限，请检查输入或提高服务端限额。')
+            conn.execute('UPDATE jobs SET calls=calls+1 WHERE id=?', (self.job_id,))
+    def record_usage(self, usage):
+        with db.connection() as conn:
+            conn.execute('UPDATE jobs SET input_tokens=input_tokens+?, output_tokens=output_tokens+? WHERE id=?', (usage.get('prompt_tokens',0),usage.get('completion_tokens',0),self.job_id))
+    def cache_hit(self):
+        with db.connection() as conn:
+            conn.execute('UPDATE jobs SET cache_hits=cache_hits+1 WHERE id=?',(self.job_id,))
+
+def call(stage, data, schema, job_id=None, *, meter=None, output_limit=None):
+    meter = meter or AnalysisMeter(job_id)
     model = os.getenv('LLM_MODEL','')
     base = os.getenv('LLM_BASE_URL','').rstrip('/')
     thinking = os.getenv('LLM_THINKING', '').strip()
     if thinking not in ('', 'enabled', 'disabled'):
         raise ProviderError('LLM_THINKING 必须为空、enabled 或 disabled。')
-    max_tokens = int(os.getenv('LLM_MAX_OUTPUT_TOKENS', '10000'))
+    max_tokens = output_limit or int(os.getenv('LLM_MAX_OUTPUT_TOKENS', '10000'))
     key = db.digest({'stage':stage,'data':data,'schema':schema.model_json_schema(),'prompt':PROMPTS[stage], 'version':VERSION,'model':model,'base':base,'temperature':0,'format':os.getenv('LLM_JSON_SCHEMA'),'thinking':thinking,'max_tokens':max_tokens})
-    cached = db.cache_get(key, job_id)
+    if meter.scope:
+        key = db.digest({'key':key,'scope':meter.scope})
+    cached = db.cache_get(key)
     if cached is not None:
+        meter.cache_hit()
         return schema.model_validate(cached)
     messages = [{'role':'system','content':PROMPTS[stage]+'\nJSON Schema: '+json.dumps(schema.model_json_schema(), ensure_ascii=False)}, {'role':'user','content':json.dumps(data, ensure_ascii=False)}]
     if sum(len(message['content']) for message in messages) > 180000:
         raise ProviderError('当前阶段输入过长，请减少本批论文数量或使用较短论文；不会静默截断证据。')
     for attempt in range(3):
-        with db.connection() as conn:
-            row = conn.execute('SELECT calls FROM jobs WHERE id=?', (job_id,)).fetchone()
-            if not row or row['calls'] >= int(os.getenv('LLM_MAX_CALLS_PER_JOB','100')):
-                raise ProviderError('本次任务已达到模型调用上限，请检查输入或提高服务端限额。')
-            conn.execute('UPDATE jobs SET calls=calls+1 WHERE id=?', (job_id,))
+        meter.before_call(max_tokens, sum(len(m['content'].encode('utf-8')) for m in messages))
         fmt = {'type':'json_object'}
         if os.getenv('LLM_JSON_SCHEMA','false').lower() == 'true':
             fmt = {'type':'json_schema','json_schema':{'name':stage,'strict':True,'schema':strict_schema(schema.model_json_schema())}}
@@ -66,8 +84,7 @@ def call(stage, data, schema, job_id):
                 raise ProviderError(f'模型服务返回 HTTP {response.status_code}，请检查密钥、模型名称或服务额度。')
             body = response.json()
             usage = body.get('usage', {})
-            with db.connection() as conn:
-                conn.execute('UPDATE jobs SET input_tokens=input_tokens+?, output_tokens=output_tokens+? WHERE id=?', (usage.get('prompt_tokens',0),usage.get('completion_tokens',0),job_id))
+            meter.record_usage(usage)
             choice = body['choices'][0]
             if choice.get('finish_reason') == 'length':
                 raise ProviderError('模型输出达到长度上限，未接受不完整 JSON。请提高 LLM_MAX_OUTPUT_TOKENS，或对支持的模型设置 LLM_THINKING=disabled 后重试。')

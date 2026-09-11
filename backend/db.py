@@ -37,6 +37,15 @@ def init():
         CREATE TABLE IF NOT EXISTS cache(key TEXT PRIMARY KEY, value TEXT NOT NULL, created REAL NOT NULL);
         CREATE TABLE IF NOT EXISTS revisions(id TEXT PRIMARY KEY, job TEXT NOT NULL, paper TEXT NOT NULL, before_json TEXT NOT NULL, after_json TEXT NOT NULL, created REAL NOT NULL);
         CREATE TABLE IF NOT EXISTS worker_state(id INTEGER PRIMARY KEY CHECK(id=1), heartbeat REAL NOT NULL);
+        CREATE TABLE IF NOT EXISTS tutor_threads(id TEXT PRIMARY KEY, session TEXT NOT NULL, job TEXT NOT NULL, scope TEXT NOT NULL, created REAL NOT NULL);
+        CREATE INDEX IF NOT EXISTS idx_tutor_threads_job ON tutor_threads(session,job,created);
+        CREATE TABLE IF NOT EXISTS tutor_tasks(id TEXT PRIMARY KEY, thread TEXT NOT NULL, request_id TEXT NOT NULL, fingerprint TEXT NOT NULL, snapshot TEXT NOT NULL, request TEXT NOT NULL, history TEXT NOT NULL, status TEXT NOT NULL, stage TEXT NOT NULL, answer TEXT, error TEXT, calls INTEGER NOT NULL DEFAULT 0, input_tokens INTEGER NOT NULL DEFAULT 0, output_tokens INTEGER NOT NULL DEFAULT 0, cache_hits INTEGER NOT NULL DEFAULT 0, created REAL NOT NULL, updated REAL NOT NULL, UNIQUE(thread,request_id));
+        CREATE INDEX IF NOT EXISTS idx_tutor_tasks_queue ON tutor_tasks(status,created);
+        CREATE INDEX IF NOT EXISTS idx_tutor_tasks_thread ON tutor_tasks(thread,created);
+        CREATE INDEX IF NOT EXISTS idx_tutor_tasks_cache ON tutor_tasks(fingerprint,status);
+        CREATE TABLE IF NOT EXISTS tutor_usage(id TEXT PRIMARY KEY, task TEXT NOT NULL, tokens INTEGER NOT NULL, created REAL NOT NULL);
+        CREATE INDEX IF NOT EXISTS idx_tutor_usage_created ON tutor_usage(created);
+        CREATE TABLE IF NOT EXISTS tutor_worker_state(id INTEGER PRIMARY KEY CHECK(id=1), heartbeat REAL NOT NULL);
         ''')
 
 def cache_get(key, job_id=None):

@@ -34,6 +34,7 @@ import {
 import { api, localDemo, download, matrixMarkdown, localReport } from "./api";
 import ontologyData from "../backend/ontology.json";
 import { useResearchTools } from "./webmcp";
+import type { TutorSeed } from './Tutor';
 import type {
   Claim,
   Config,
@@ -45,6 +46,7 @@ import type {
   Tag,
 } from "./types";
 const Graph = lazy(() => import("./Graph"));
+const Tutor = lazy(() => import('./Tutor'));
 const statuses: Record<Status, string> = {
   supported: "有据支持",
   partial: "部分支持",
@@ -80,6 +82,10 @@ function flatten(nodes: Tag[]): Tag[] {
   return nodes.flatMap((n) => [n, ...flatten(n.children || [])]);
 }
 export default function App() {
+  const [tutorOpen,setTutorOpen]=useState(false);
+  const [tutorSeed,setTutorSeed]=useState<TutorSeed>();
+  const [tutorKey,setTutorKey]=useState(0);
+  function askTutor(seed?:TutorSeed){setTutorSeed(seed);setTutorKey(k=>k+1);setTutorOpen(true);}
   const [config, setConfig] = useState<Config | null>(null),
     [connected, setConnected] = useState(false),
     [job, setJob] = useState<Job | null>(null);
@@ -390,6 +396,7 @@ export default function App() {
           >
             <Pencil size={13} />
           </button>
+          <button className="evidence-link" onClick={()=>askTutor({paperIds:[paper.id],evidenceIds:claim.evidence_ids.slice(0,8),question:'请解释这段结论：'+claim.text})}>问助教</button>
         </div>
         {claim.kind === "human_note" && <small>人工备注</small>}
       </div>
@@ -427,7 +434,7 @@ export default function App() {
     };
   }, [!!modal, evidenceIds !== null]);
   return (
-    <div className="app-shell">
+    <div className={'app-shell'+(tutorOpen?' tutor-active':'')}>
       <aside className="sidebar">
         <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
           <div className="brand-mark">
@@ -478,6 +485,7 @@ export default function App() {
             研究工作空间 <ChevronRight size={14} />
             <strong>方法分析</strong>
           </div>
+          <button className="button secondary tutor-open-button" disabled={!job?.result?.papers.length} onClick={()=>tutorOpen?setTutorOpen(false):askTutor()}><BookOpen size={16}/>论文助教</button>
           <button className="text-button" onClick={loadDemo}>
             <BookOpen size={15} /> 打开教学示例
           </button>
@@ -847,6 +855,7 @@ export default function App() {
                           <span className="version">修订 v{p.revision}</span>
                         </div>
                         <h2>{p.metadata.title}</h2>
+                        <button className="evidence-link" onClick={()=>askTutor({paperIds:[p.id]})}>向助教提问 <ChevronRight size={14}/></button>
                         <p className="paper-authors">
                           {p.metadata.authors.join(" · ")}
                         </p>
@@ -1169,6 +1178,7 @@ export default function App() {
           </footer>
         </main>
       </div>
+      {tutorOpen&&job?.result&&<Suspense fallback={<div className="notice">正在打开论文助教…</div>}><Tutor key={job.id+':'+tutorKey} job={job} connected={connected} seed={tutorSeed} onClose={()=>setTutorOpen(false)} onEvidence={showEvidence}/></Suspense>}
       {evidenceIds !== null && (
         <>
           <div className="drawer-scrim" onClick={() => setEvidenceIds(null)} />
@@ -1212,6 +1222,7 @@ export default function App() {
                   </div>
                   <blockquote>{e.text}</blockquote>
                   <code>{e.id}</code>
+                  <button className="evidence-link" onClick={()=>{setEvidenceIds(null);askTutor({paperIds:[e.paper_id],evidenceIds:[e.id],question:'请讲解这段原文的含义和适用条件。'});}}>请助教讲解这段原文</button>
                   {result?.mode === "live" && (
                     <a
                       className="evidence-link"

@@ -2,7 +2,7 @@
 
 生产入口：`https://134.175.147.254`。需要云安全组放行 TCP 80、443；8000 仅监听本机。仓库：<https://github.com/X-XJY/PaperReview-Agent>。
 
-适用于 Ubuntu 22.04、2GB 内存。前端在开发电脑构建，服务器只运行 Nginx、FastAPI 和一个独立 worker。Docker Compose 仍可作为另一种部署方式。
+适用于 Ubuntu 22.04、2GB 内存。前端在开发电脑构建，服务器运行 Nginx、FastAPI、论文 worker 和助教 worker。Docker Compose 仍可作为另一种部署方式。
 
 ## 安装
 
@@ -38,13 +38,15 @@ IP 证书只有六天有效期，定时器每天检查两次并在续期后 relo
 
 ## 运维
 
+AI 助教上线时先安装更新后的 requirements.txt，启动 API 自动创建新增 SQLite 表，再安装 `deploy/paperreview-tutor.service` 并执行 `sudo systemctl daemon-reload`、`sudo systemctl enable --now paperreview-tutor`。原 worker 也应重启以加载聊天数据清理逻辑。仅运行一个 tutor worker。详细参数见 [助教说明](AI_TUTOR.md)。
+
 ```bash
-sudo systemctl status paperreview-api paperreview-worker nginx
+sudo systemctl status paperreview-api paperreview-worker paperreview-tutor nginx
 sudo journalctl -u paperreview-worker -n 80 --no-pager
 sudo systemctl list-timers paperreview-certbot.timer
 curl https://134.175.147.254/api/health
 ```
 
-更新时保留 `.env`、`data/` 和 `.venv/`，上传新源码及完整 `dist/` 后重启两个应用服务。不要同时启用第二个 worker。备份数据时先停止两个应用服务，再备份 `data/`；该目录包含论文和会话数据，应保持私有。
+更新时保留 `.env`、`data/` 和 `.venv/`，上传新源码及完整 `dist/` 后重启三个应用服务。每类 worker 仅运行一个实例。备份数据时先停止三个应用服务，再备份 `data/`；该目录包含论文和会话数据，应保持私有。
 
 若本机 TLS 正常而公网 443 超时，先检查云控制台安全组；服务器内 UFW 规则与云安全组相互独立。未放行 443 前不能将 HTTPS 配置成功等同于公网访问验收通过。

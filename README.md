@@ -14,6 +14,7 @@
 - 方法/优势/作者局限/未来工作人工修正、版本冲突检查、修订历史和重新推导。
 - 整体 Markdown 报告及独立对比矩阵导出。
 - 会话隔离、上传与每日处理限额、单任务模型调用上限、过期清理。
+- AI 论文助教：有据问答、分层讲解、跨论文比较、单题理解检查；直接/引导模式、公式、聊天导出、修订过期提示和独立调用预算。
 
 **没有密钥也能体验教学样例。样例是原创虚构文档，非真实论文，不可作为科研引用。** 静态站点只提供样例交互；真实 PDF 分析需要下面的 Python 后端和 worker。
 
@@ -42,10 +43,14 @@ npm ci
 | `LLM_THINKING` | DeepSeek 可设置 `disabled`，避免思考占满 JSON 输出预算；其他供应商留空 |
 | `LLM_MAX_OUTPUT_TOKENS` | 单次输出上限，默认 10000；本次部署使用 16000 |
 
-分别打开三个终端：
+分别打开四个终端（不使用助教时可省略 tutor_worker）：
 
 ```bash
 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+```bash
+python -m backend.tutor_worker
 ```
 
 ```bash

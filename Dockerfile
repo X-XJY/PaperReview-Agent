@@ -4,6 +4,7 @@ COPY package*.json ./
 RUN npm ci
 COPY index.html tsconfig.json vite.config.ts ./
 COPY src ./src
+COPY backend/ontology.json ./backend/ontology.json
 COPY scripts/build.mjs ./scripts/build.mjs
 COPY public ./public
 RUN npm run build

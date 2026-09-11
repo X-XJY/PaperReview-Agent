@@ -234,5 +234,8 @@ def pdf(job_id: str, paper_id: str, request: Request):
         raise HTTPException(404,'示例未附带真实 PDF。')
     return FileResponse(file['path'],media_type='application/pdf',filename='paper.pdf',content_disposition_type='inline')
 
+from .tutor import router as tutor_router
+app.include_router(tutor_router)
+
 if Path('dist').exists():
     app.mount('/',StaticFiles(directory='dist',html=True),name='frontend')

@@ -26,5 +26,17 @@ services:
     depends_on:
       app:
         condition: service_healthy
+  tutor:
+    build: .
+    command: ["python", "-m", "backend.tutor_worker"]
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+    volumes:
+      - paper-data:/app/data
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
 volumes:
   paper-data:
