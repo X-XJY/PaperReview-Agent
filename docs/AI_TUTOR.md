@@ -10,7 +10,7 @@
 
 - 原有 API 和论文 worker 保留，增加 `python -m backend.tutor_worker`，且仅运行一个助教 worker。
 - Ubuntu 使用 `deploy/paperreview-tutor.service`；Docker Compose 已包含 tutor 服务。
-- `TUTOR_DAILY_TURNS=20`：每浏览器会话每天的助教轮次；`TUTOR_GLOBAL_DAILY_TURNS=200`：全站轮次；`TUTOR_DAILY_TOKENS=1000000`：全站 token 预算。
+- 每会话无每日轮次限制；`TUTOR_GLOBAL_DAILY_TURNS=200`：全站轮次；`TUTOR_DAILY_TOKENS=1000000`：全站 token 预算。
 - 每轮最多 5 次模型调用，包括检索词改写、生成、核验和所有重试。普通中文请求通常 3 次。每次调用前预留输入字节数与最大输出预算，供应商返回用量后核算；失败且无用量时保守保留预留额度。
 - 对话请求使用独立队列和计量，不消耗论文任务的调用次数。默认全局助教并发为 1，每会话最多两个排队/运行请求。
 

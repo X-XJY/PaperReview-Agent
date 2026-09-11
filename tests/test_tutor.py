@@ -15,7 +15,6 @@ def client(tmp_path,monkeypatch):
     monkeypatch.setattr(db,'DATA',tmp_path)
     monkeypatch.setattr('backend.main.DATA',tmp_path)
     monkeypatch.setattr(tutor,'configured',lambda:True)
-    monkeypatch.setenv('TUTOR_DAILY_TURNS','20')
     monkeypatch.setenv('TUTOR_GLOBAL_DAILY_TURNS','200')
     monkeypatch.setenv('TUTOR_DAILY_TOKENS','1000000')
     with TestClient(app) as c:
@@ -132,7 +131,7 @@ def test_tutor_quota_and_model_budget_are_separate(client,monkeypatch):
     with db.connection() as c:
         assert c.execute('SELECT sum(tokens) FROM tutor_usage').fetchone()[0]==75
     tutor.set_state(task,'done',status='failed')
-    monkeypatch.setenv('TUTOR_DAILY_TURNS','1')
+    monkeypatch.setenv('TUTOR_GLOBAL_DAILY_TURNS','1')
     assert send(client,thread).status_code==429
 
 def test_budget_reserves_failed_requests(client,monkeypatch):
@@ -163,3 +162,12 @@ def test_retrieval_preserves_each_paper_and_original_text():
     originals={e.id:e for p in papers for e in p.evidence}
     assert all(r['text'] in originals[r['evidence_id']].text for r in rows)
     assert retrieve(papers,'zzzz_nonexistent_zzzz')==[]
+
+
+def test_session_can_exceed_twenty_daily_turns(client):
+    _,_,thread=setup(client)
+    for _ in range(21):
+        response=send(client,thread)
+        assert response.status_code==200
+        tutor.set_state(response.json()['id'],'done',status='failed')
+    assert 'daily_turns' not in client.get('/api/tutor/status').json()

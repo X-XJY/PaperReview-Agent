@@ -48,8 +48,7 @@ def tutor_status(request: Request):
     session(request)
     with db.connection() as c:
         row=c.execute('SELECT heartbeat FROM tutor_worker_state WHERE id=1').fetchone()
-    return {'configured':configured(),'online':bool(row and time.time()-row[0]<20),
-            'daily_turns':int(os.getenv('TUTOR_DAILY_TURNS','20'))}
+    return {'configured':configured(),'online':bool(row and time.time()-row[0]<20)}
 
 @router.get('/jobs/{job_id}/threads')
 def threads(job_id: str, request: Request):
@@ -125,9 +124,8 @@ def enqueue(thread_id: str, value: TutorRequest, request: Request):
              'model':os.getenv('LLM_MODEL'),'base':os.getenv('LLM_BASE_URL'),
              'thinking':os.getenv('LLM_THINKING'),'format':os.getenv('LLM_JSON_SCHEMA')})
         cached=c.execute("SELECT answer FROM tutor_tasks WHERE fingerprint=? AND status='completed' ORDER BY created DESC LIMIT 1",(fingerprint,)).fetchone()
-        count=c.execute('SELECT count(*) FROM tutor_tasks t JOIN tutor_threads h ON h.id=t.thread WHERE h.session=? AND t.created>?',(thread['session'],now-86400)).fetchone()[0]
         total=c.execute('SELECT count(*) FROM tutor_tasks WHERE created>?',(now-86400,)).fetchone()[0]
-        if count>=int(os.getenv('TUTOR_DAILY_TURNS','20')) or total>=int(os.getenv('TUTOR_GLOBAL_DAILY_TURNS','200')):
+        if total>=int(os.getenv('TUTOR_GLOBAL_DAILY_TURNS','200')):
             raise HTTPException(429,'今天的助教轮次额度已用完。')
         active=c.execute("SELECT count(*) FROM tutor_tasks t JOIN tutor_threads h ON h.id=t.thread WHERE h.session=? AND t.status IN ('queued','running')",(thread['session'],)).fetchone()[0]
         if active>=2:

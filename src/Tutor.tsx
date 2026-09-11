@@ -38,7 +38,7 @@ export default function Tutor({job,connected,seed,onClose,onEvidence}:{job:Job;c
   const [pinned,setPinned]=useState(seed?.evidenceIds||[]);
   const [error,setError]=useState('');
   const [sending,setSending]=useState(false);
-  const [service,setService]=useState<{online:boolean;configured:boolean;daily_turns:number}|null>(null);
+  const [service,setService]=useState<{online:boolean;configured:boolean}|null>(null);
   const end=useRef<HTMLDivElement>(null);
   const pending=messages.some(m=>['queued','running'].includes(m.status));
   const requestRef=useRef<{key:string;id:string}|null>(null);
@@ -137,7 +137,7 @@ export default function Tutor({job,connected,seed,onClose,onEvidence}:{job:Job;c
       {pinned.length>0&&<div className="tutor-anchor">已带入 {pinned.length} 条原文证据 <button type="button" onClick={()=>setPinned([])}>清除</button></div>}
       {error&&<p className="tutor-error" role="alert">{error}</p>}
       <textarea ref={input} aria-label="向论文助教提问" placeholder={activity==='quiz'?'输入要练习的概念，或提交你的回答…':'例如：为什么这里需要对注意力分数进行缩放？'} value={draft} maxLength={3000} onChange={e=>setDraft(e.target.value)} rows={3}/>
-      <div><small>每会话每日 {service?.daily_turns||20} 轮 · 不替代原文核对</small><button className="button primary" type="submit" disabled={!live||!service?.online||!service?.configured||!scope.length||!draft.trim()||pending||sending||['queued','running'].includes(job.status)}>
+      <div><button className="button primary" type="submit" disabled={!live||!service?.online||!service?.configured||!scope.length||!draft.trim()||pending||sending||['queued','running'].includes(job.status)}>
         {sending||pending?<Loader2 className="spin" size={16}/>:<Send size={16}/>}发送</button></div>
     </form>
   </aside>;
