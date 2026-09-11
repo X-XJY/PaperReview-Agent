@@ -1,3 +1,4 @@
+import EvidenceText from './LazyEvidenceText';
 import { useEffect, useRef, useState } from 'react';
 import { X, Send, BookOpen, GraduationCap, Plus, Loader2, Download, ChevronDown } from 'lucide-react';
 import Markdown from 'react-markdown';
@@ -124,7 +125,7 @@ export default function Tutor({job,connected,seed,onClose,onEvidence}:{job:Job;c
           <RichText text={b.text}/>
           {b.status!=='supported'&&<small className="tutor-reason">{b.reason}</small>}
           {b.citations.map(c=><details className="tutor-citation" key={c.evidence_id}><summary><BookOpen size={13}/>{c.title} · {c.page?`第 ${c.page} 页`:'页码未知'}</summary>
-            <blockquote>{c.text}</blockquote><button className="evidence-link" onClick={()=>onEvidence([c.evidence_id])}>查看完整证据块</button>
+            <blockquote><EvidenceText text={c.text}/></blockquote><button className="evidence-link" onClick={()=>onEvidence([c.evidence_id])}>查看完整证据块</button>
             {job.result?.mode==='live'&&<a className="evidence-link" href={`/api/jobs/${job.id}/papers/${c.paper_id}/pdf#page=${c.page||1}`} target="_blank" rel="noreferrer">打开原 PDF</a>}</details>)}
         </section>)}
           {m.answer.question&&<div className="tutor-followup"><strong>继续想一想</strong><RichText text={m.answer.question}/></div>}

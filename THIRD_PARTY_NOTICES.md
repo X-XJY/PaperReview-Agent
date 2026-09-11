@@ -21,3 +21,5 @@
 - **MinerU**：本项目仅调用 OpenDataLab 提供的托管 API，不内嵌模型或源码。MinerU 受其 [独立许可证](https://github.com/opendatalab/MinerU/blob/master/LICENSE.md)及托管服务条款约束。界面和 README 保留使用标识。
 
 论文原文不因仓库使用 MIT 而自动变为 MIT。不得提交密钥、用户上传文件或未获分发许可的论文。`public/demo.json` 是本团队原创虚构材料，不涉及真实论文结论。
+
+- rehype-raw、rehype-sanitize（MIT）：将 MinerU 的 HTML 表格解析并进行安全过滤；原文数据不改写。

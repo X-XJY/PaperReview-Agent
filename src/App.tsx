@@ -1,3 +1,4 @@
+import EvidenceText from './LazyEvidenceText';
 import {
   useCallback,
   useEffect,
@@ -186,12 +187,6 @@ export default function App() {
   const result = job?.result,
     papers = result?.papers || [],
     synthesis = result?.synthesis;
-  const claims = papers.flatMap((p) =>
-    (Object.keys(fields) as Field[]).flatMap((f) => p.extraction[f]),
-  );
-  const warningCount =
-    claims.filter((c) => c.status !== "supported").length +
-    papers.reduce((sum, p) => sum + p.warnings.length, 0);
   const filtered = papers.filter(
     (p) =>
       (
@@ -203,13 +198,7 @@ export default function App() {
       )
         .toLowerCase()
         .includes(query.toLowerCase()) &&
-      (filter === "all" ||
-        (filter === "warnings"
-          ? p.warnings.length > 0 ||
-            (Object.keys(fields) as Field[]).some((f) =>
-              p.extraction[f].some((c) => c.status !== "supported"),
-            )
-          : p.classification.method_ids.includes(filter))),
+      (filter === "all" || p.classification.method_ids.includes(filter)),
   );
   const evidence: Evidence[] = papers.flatMap((p) => p.evidence);
   const selectedEvidence =
@@ -623,21 +612,7 @@ export default function App() {
                 <small>可追溯来源</small>
               </div>
             </div>
-            <button
-              className="stat warning-stat"
-              onClick={() => {
-                setTab("papers");
-                setFilter("warnings");
-              }}
-            >
-              <span>
-                <ShieldCheck size={17} /> 待核验内容
-              </span>
-              <div>
-                <strong>{warningCount.toString().padStart(2, "0")}</strong>
-                <small>点击集中查看</small>
-              </div>
-            </button>
+
           </div>
           <section className="analysis-panel">
             <div className="tabs" role="tablist" aria-label="分析视图">
@@ -684,7 +659,6 @@ export default function App() {
                 onChange={(e) => setFilter(e.target.value)}
               >
                 <option value="all">全部方法类别</option>
-                <option value="warnings">仅待核验论文</option>
                 {Array.from(
                   new Set(papers.flatMap((p) => p.classification.method_ids)),
                 ).map((id) => (
@@ -1220,7 +1194,7 @@ export default function App() {
                   <div className="source-location">
                     {e.page ? `PDF 第 ${e.page} 页` : "页码未知"} · {e.section}
                   </div>
-                  <blockquote>{e.text}</blockquote>
+                  <blockquote><EvidenceText text={e.text}/></blockquote>
                   <code>{e.id}</code>
                   <button className="evidence-link" onClick={()=>{setEvidenceIds(null);askTutor({paperIds:[e.paper_id],evidenceIds:[e.id],question:'请讲解这段原文的含义和适用条件。'});}}>请助教讲解这段原文</button>
                   {result?.mode === "live" && (
@@ -1439,7 +1413,7 @@ export default function App() {
                         <strong>
                           {e.section} · 第 {e.page || "?"} 页
                         </strong>
-                        {e.text}
+                        <EvidenceText text={e.text}/>
                       </span>
                     </label>
                   ))}
