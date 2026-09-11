@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import logging
 import httpx
 from pydantic import ValidationError
 from . import db
@@ -8,6 +9,14 @@ from .prompts import PROMPTS, VERSION
 
 class ProviderError(RuntimeError):
     pass
+
+logger = logging.getLogger(__name__)
+
+def validation_details(error):
+    # Never log raw model output, paper text, credentials or Pydantic input values.
+    return [{'path':'.'.join(str(part) for part in item['loc']) or '$',
+             'type':item['type'], 'message':item['msg']}
+            for item in error.errors(include_input=False, include_url=False)[:12]]
 
 def strict_schema(value):
     if isinstance(value,list):
@@ -66,11 +75,23 @@ def call(stage, data, schema, job_id):
             parsed = schema.model_validate_json(content, strict=True)
             db.cache_put(key, parsed.model_dump())
             return parsed
-        except (ValidationError, KeyError, ValueError, TypeError):
-            if attempt == 0:
-                messages.append({'role':'user','content':'上次结果未通过结构校验。重新生成严格符合 schema 的 JSON，不要添加字段或文本。'})
+        except ValidationError as error:
+            details = validation_details(error)
+            logger.warning('Structured output rejected stage=%s attempt=%s errors=%s', stage, attempt+1, json.dumps(details, ensure_ascii=False))
+            if attempt < 2:
+                # Repair the actual rejected object, with precise paths and types.
+                # Keep only the latest repair pair, so retries cannot grow indefinitely.
+                messages[2:] = [
+                    {'role':'assistant','content':content},
+                    {'role':'user','content':'上一个 JSON 未通过结构校验。仅修复下面列出的字段格式，保留原有证据和事实，不补编缺失信息。严格按 schema 输出完整 JSON。只有允许 null 的字段可以为 null；字符串缺失用空字符串，数组缺失用空数组。校验错误：'+json.dumps(details,ensure_ascii=False)}]
                 continue
-            raise ProviderError('模型输出未通过结构校验，已保留成功阶段，可重试。') from None
+            fields = ', '.join(item['path'] for item in details[:3])
+            raise ProviderError(f'模型输出未通过结构校验（{stage}: {fields}），两次定向修复仍未成功；已保留成功阶段，可重试。') from None
+        except (KeyError, ValueError, TypeError):
+            if attempt < 2:
+                messages[2:] = [{'role':'user','content':'接口上次未返回有效 JSON 对象。请仅输出严格符合 schema 的完整 JSON。'}]
+                continue
+            raise ProviderError(f'模型响应格式无效（{stage}），已保留成功阶段，可重试。') from None
         except httpx.HTTPError:
             if attempt < 2:
                 time.sleep(2 ** attempt)
