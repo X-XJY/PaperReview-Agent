@@ -21,6 +21,8 @@ import {
   ChevronRight,
   Check,
   AlertTriangle,
+  PanelLeftClose,
+  PanelLeftOpen,
   X,
   Pencil,
   RotateCcw,
@@ -83,6 +85,7 @@ function flatten(nodes: Tag[]): Tag[] {
   return nodes.flatMap((n) => [n, ...flatten(n.children || [])]);
 }
 export default function App() {
+  const [sidebarHidden,setSidebarHidden]=useState(false);
   const [tutorOpen,setTutorOpen]=useState(false);
   const [tutorSeed,setTutorSeed]=useState<TutorSeed>();
   const [tutorKey,setTutorKey]=useState(0);
@@ -423,8 +426,10 @@ export default function App() {
     };
   }, [!!modal, evidenceIds !== null]);
   return (
-    <div className={'app-shell'+(tutorOpen?' tutor-active':'')}>
+    <div className={'app-shell'+(tutorOpen?' tutor-active':'')+(sidebarHidden?' sidebar-hidden':'')}>
+      {sidebarHidden && <button className="sidebar-restore icon-button" aria-label="展开侧边栏" title="展开侧边栏" onClick={()=>setSidebarHidden(false)}><PanelLeftOpen size={20}/></button>}
       <aside className="sidebar">
+        <button className="sidebar-collapse icon-button" aria-label="隐藏侧边栏" title="隐藏侧边栏" onClick={()=>setSidebarHidden(true)}><PanelLeftClose size={20}/></button>
         <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
           <div className="brand-mark">
             <Layers size={25} />
@@ -847,7 +852,7 @@ export default function App() {
                             <span key={id}>{tagLabel(id)}</span>
                           ))}
                         </div>
-                        {p.warnings.map((w, i) => (
+                        {p.warnings.filter(w => !/^(eval-\d+|metadata|classification) 待确认[：:]/.test(w)).map((w, i) => (
                           <p className="inline-warning" key={i}>
                             {w}
                           </p>

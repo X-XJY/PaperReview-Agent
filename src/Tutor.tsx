@@ -1,6 +1,6 @@
 import EvidenceText from './LazyEvidenceText';
 import { useEffect, useRef, useState } from 'react';
-import { X, Send, BookOpen, GraduationCap, Plus, Loader2, Download, ChevronDown } from 'lucide-react';
+import { X, Maximize2, Minimize2, Send, BookOpen, GraduationCap, Plus, Loader2, Download, ChevronDown } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -27,6 +27,7 @@ function RichText({text}:{text:string}) {
 
 export default function Tutor({job,connected,seed,onClose,onEvidence}:{job:Job;connected:boolean;seed?:TutorSeed;onClose:()=>void;onEvidence:(ids:string[])=>void}) {
   const papers=job.result?.papers||[];
+  const [fullscreen,setFullscreen]=useState(false);
   const [scope,setScope]=useState<string[]>(seed?.paperIds||papers.map(p=>p.id));
   const [threads,setThreads]=useState<Thread[]>([]);
   const [thread,setThread]=useState('');
@@ -46,6 +47,14 @@ export default function Tutor({job,connected,seed,onClose,onEvidence}:{job:Job;c
   const input=useRef<HTMLTextAreaElement>(null);
   const live=connected && job.id!=='local-demo';
   useEffect(()=>{input.current?.focus();},[]);
+  useEffect(()=>{
+    if(!fullscreen)return;
+    const overflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    const escape=(event:KeyboardEvent)=>{if(event.key==='Escape')setFullscreen(false);};
+    window.addEventListener('keydown',escape);
+    return()=>{document.body.style.overflow=overflow;window.removeEventListener('keydown',escape);};
+  },[fullscreen]);
   useEffect(()=>{
     if(!live)return;
     let disposed=false;
@@ -96,9 +105,9 @@ export default function Tutor({job,connected,seed,onClose,onEvidence}:{job:Job;c
         ...b.citations.map(c=>`> ${c.title} · ${c.page?'PDF 第 '+c.page+' 页':'页码未知'} · ${c.evidence_id}\n> ${c.text.replace(/\n/g,'\n> ')}`)])||[m.error||m.stage]),m.answer?.question||''])].join('\n');
     download('paper-tutor.md',text);
   }
-  return <aside className="tutor-panel" aria-label="AI 论文助教">
+  return <aside className={'tutor-panel'+(fullscreen?' tutor-fullscreen':'')} aria-label="AI 论文助教">
     <header className="tutor-head"><div><GraduationCap size={23}/><div><strong>论文助教</strong><small>理解方法，回到原文</small></div></div>
-      <button className="icon-button" aria-label="收起助教" onClick={onClose}><X size={20}/></button></header>
+      <div className="tutor-window-actions"><button className="icon-button" aria-label={fullscreen?'退出全屏':'全屏显示助教'} title={fullscreen?'退出全屏':'全屏显示助教'} aria-pressed={fullscreen} onClick={()=>setFullscreen(!fullscreen)}>{fullscreen?<Minimize2 size={20}/>:<Maximize2 size={20}/>}</button><button className="icon-button" aria-label="收起助教" onClick={onClose}><X size={20}/></button></div></header>
     <div className="tutor-controls">
       <div className="tutor-toolbar"><select aria-label="助教历史会话" value={thread} onChange={e=>{setThread(e.target.value);setMessages([]);setPinned([]);setError('');}}>
         <option value="">新对话</option>{thread&&!threads.some(t=>t.id===thread)&&<option value={thread}>当前对话 · {scope.length} 篇</option>}{threads.map((t,i)=><option value={t.id} key={t.id}>对话 {threads.length-i} · {JSON.parse(t.scope).length} 篇</option>)}</select>
