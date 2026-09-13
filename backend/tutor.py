@@ -3,7 +3,7 @@ import json
 import os
 import re
 import time
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Response
 from . import db, llm
 from .config import configured
 from .schemas import Paper
@@ -68,11 +68,41 @@ def create_thread(job_id: str, value: TutorThreadInput, request: Request):
     sid=session(request)
     with db.connection() as c:
         c.execute('BEGIN IMMEDIATE')
+        if not c.execute('SELECT 1 FROM jobs WHERE id=? AND session=?',(job_id,sid)).fetchone():
+            raise HTTPException(404,'未找到任务。')
         if c.execute('SELECT count(*) FROM tutor_threads WHERE session=?',(sid,)).fetchone()[0]>=100:
             raise HTTPException(429,'当前会话的助教对话数量已达上限。')
         ident=db.uid()
         c.execute('INSERT INTO tutor_threads VALUES(?,?,?,?,?)',(ident,sid,job_id,json.dumps(sorted(value.paper_ids)),time.time()))
     return {'id':ident}
+
+@router.delete('/threads/{thread_id}')
+def delete_thread(thread_id: str, request: Request):
+    from .main import session
+    sid=session(request)
+    with db.connection() as c:
+        c.execute('BEGIN IMMEDIATE')
+        if not c.execute('SELECT 1 FROM tutor_threads WHERE id=? AND session=?',(thread_id,sid)).fetchone():
+            raise HTTPException(404,'助教会话不存在。')
+        if c.execute("SELECT 1 FROM tutor_tasks WHERE thread=? AND status IN ('queued','running')",(thread_id,)).fetchone():
+            raise HTTPException(409,'助教仍在回答，请完成后再删除。')
+        c.execute('DELETE FROM tutor_tasks WHERE thread=?',(thread_id,))
+        c.execute('DELETE FROM tutor_threads WHERE id=?',(thread_id,))
+    return {'deleted':True}
+
+@router.get('/threads/{thread_id}/pdf')
+def export_pdf(thread_id: str, request: Request):
+    thread_owned(thread_id,request)
+    with db.connection() as c:
+        rows=c.execute("SELECT request,answer FROM tutor_tasks WHERE thread=? AND status='completed' AND answer IS NOT NULL ORDER BY created,id",(thread_id,)).fetchall()
+    if not rows:
+        raise HTTPException(409,'还没有可导出的完整问答。')
+    from .tutor_pdf import conversation_pdf
+    try:
+        content=conversation_pdf([{'question':json.loads(r['request'])['question'],'answer':json.loads(r['answer'])} for r in rows])
+    except FileNotFoundError:
+        raise HTTPException(503,'PDF 中文字体尚未配置，请联系管理员。') from None
+    return Response(content,media_type='application/pdf',headers={'Content-Disposition':'attachment; filename="paper-tutor.pdf"'})
 
 @router.get('/threads/{thread_id}')
 def history(thread_id: str, request: Request):
@@ -102,6 +132,8 @@ def enqueue(thread_id: str, value: TutorRequest, request: Request):
     content=value.model_dump(exclude={'request_id'})
     with db.connection() as c:
         c.execute('BEGIN IMMEDIATE')
+        if not c.execute('SELECT 1 FROM tutor_threads WHERE id=? AND session=?',(thread_id,thread['session'])).fetchone():
+            raise HTTPException(404,'助教会话已删除。')
         old=c.execute('SELECT * FROM tutor_tasks WHERE thread=? AND request_id=?',(thread_id,value.request_id)).fetchone()
         if old:
             if json.loads(old['request'])!=content:

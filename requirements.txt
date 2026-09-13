@@ -25,3 +25,6 @@ typing_extensions==4.16.0
 uvicorn==0.52.4
 rank-bm25==0.2.2
 numpy==2.2.6
+reportlab==5.0.1
+pillow==12.3.0
+charset-normalizer==3.5.1

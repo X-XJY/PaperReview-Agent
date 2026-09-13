@@ -13,6 +13,7 @@ FROM python:3.12-slim
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 DATA_DIR=/app/data
 COPY requirements.txt ./
+RUN apt-get update && apt-get install -y --no-install-recommends fonts-wqy-zenhei && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir -r requirements.txt && useradd -m -u 10001 appuser
 COPY backend ./backend
 COPY public ./public

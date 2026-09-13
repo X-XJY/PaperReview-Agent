@@ -88,6 +88,22 @@ def list_jobs(request: Request):
         rows = conn.execute('SELECT id,status,stage,created,stale FROM jobs WHERE session=? ORDER BY created DESC LIMIT 50',(sid,)).fetchall()
     return [dict(row) for row in rows]
 
+@app.delete('/api/jobs/{job_id}')
+def delete_job(job_id: str, request: Request):
+    sid=session(request)
+    with db.connection() as conn:
+        conn.execute('BEGIN IMMEDIATE')
+        row=conn.execute('SELECT status FROM jobs WHERE id=? AND session=?',(job_id,sid)).fetchone()
+        if not row:
+            raise HTTPException(404,'未找到任务。')
+        if row['status'] in ('queued','running') or conn.execute("SELECT 1 FROM tutor_tasks t JOIN tutor_threads h ON h.id=t.thread WHERE h.job=? AND t.status IN ('queued','running')",(job_id,)).fetchone():
+            raise HTTPException(409,'任务或助教仍在处理中，请完成后再删除。')
+        conn.execute('DELETE FROM tutor_tasks WHERE thread IN (SELECT id FROM tutor_threads WHERE job=?)',(job_id,))
+        conn.execute('DELETE FROM tutor_threads WHERE job=?',(job_id,))
+        conn.execute('DELETE FROM revisions WHERE job=?',(job_id,))
+        conn.execute('DELETE FROM jobs WHERE id=?',(job_id,))
+    return {'deleted':True}
+
 @app.get('/api/jobs/{job_id}')
 def get_job(job_id: str, request: Request):
     return public(owned(job_id,request))

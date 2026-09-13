@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Check,
   AlertTriangle,
+  Trash2,
   PanelLeftClose,
   PanelLeftOpen,
   X,
@@ -1446,12 +1447,12 @@ export default function App() {
             {historyOpen && (
               <>
                 <h2>分析历史</h2>
+                {error&&<p className="inline-warning" role="alert">{error}</p>}
                 <p className="muted">只显示当前浏览器会话的任务。</p>
                 {history.length ? (
                   history.map((h) => (
-                    <button
+                    <div className="history-entry" key={h.id}><button
                       className="history-row"
-                      key={h.id}
                       onClick={() =>
                         doAction(async () => {
                           setJob(await api<Job>("/jobs/" + h.id));
@@ -1469,7 +1470,14 @@ export default function App() {
                         </small>
                       </span>
                       <ChevronRight size={16} />
-                    </button>
+                    </button><button className="icon-button history-delete" aria-label={'删除分析历史：'+h.stage} title="删除分析历史" disabled={busy||['queued','running'].includes(h.status)} onClick={()=>{
+                      if(!window.confirm('删除这条分析历史及关联的全部助教对话？删除后无法恢复。'))return;
+                      void doAction(async()=>{
+                        await api('/jobs/'+h.id,{method:'DELETE'});
+                        setHistory(items=>items.filter(item=>item.id!==h.id));
+                        if(job?.id===h.id){setJob(null);setTutorOpen(false);setEvidenceIds(null);setQuery('');setFilter('all');}
+                      });
+                    }}><Trash2 size={18}/></button></div>
                   ))
                 ) : (
                   <div className="empty">暂无历史分析</div>

@@ -50,3 +50,5 @@ curl https://134.175.147.254/api/health
 更新时保留 `.env`、`data/` 和 `.venv/`，上传新源码及完整 `dist/` 后重启三个应用服务。每类 worker 仅运行一个实例。备份数据时先停止三个应用服务，再备份 `data/`；该目录包含论文和会话数据，应保持私有。
 
 若本机 TLS 正常而公网 443 超时，先检查云控制台安全组；服务器内 UFW 规则与云安全组相互独立。未放行 443 前不能将 HTTPS 配置成功等同于公网访问验收通过。
+
+助教 PDF 导出需要安装 `sudo apt-get install fonts-wqy-zenhei`，更新 requirements.txt 并重启 API；Docker 镜像已包含该字体。

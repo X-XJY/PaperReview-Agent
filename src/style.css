@@ -1571,3 +1571,4 @@ select {
   font-size: 12px;
 }
 .sidebar-collapse{position:absolute;right:8px;top:8px}.sidebar-restore{position:fixed;left:10px;top:10px;z-index:25;background:#fff;border:1px solid var(--line);box-shadow:0 2px 8px #142d4615}.sidebar-hidden .sidebar{display:none}.sidebar-hidden .main-shell{margin-left:0}.sidebar-hidden .topbar{padding-left:52px}
+.history-entry{display:flex;align-items:center;gap:8px}.history-entry .history-row{flex:1;min-width:0}.history-delete{color:#a34b43;flex-shrink:0}

@@ -1,12 +1,12 @@
 import EvidenceText from './LazyEvidenceText';
 import { useEffect, useRef, useState } from 'react';
-import { X, Maximize2, Minimize2, Send, BookOpen, GraduationCap, Plus, Loader2, Download, ChevronDown } from 'lucide-react';
+import { X, Trash2, Maximize2, Minimize2, Send, BookOpen, GraduationCap, Plus, Loader2, Download, ChevronDown } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import './tutor.css';
-import { api, download } from './api';
+import { api } from './api';
 import type { Job, Status } from './types';
 
 type Citation = { evidence_id:string; paper_id:string; title:string; text:string; page:number|null; section:string };
@@ -98,21 +98,33 @@ export default function Tutor({job,connected,seed,onClose,onEvidence}:{job:Job;c
       const value=await api<{messages:Message[]}>(`/tutor/threads/${id}`);setMessages(value.messages);
     }catch(e){setError((e as Error).message);}finally{setSending(false);}
   }
-  function exportChat(){
-    const text=['# 研脉论文助教',...papers.filter(p=>scope.includes(p.id)).map(p=>'- '+p.metadata.title),
-      ...messages.flatMap(m=>['\n## '+m.request.question,m.stale?'> 来源已更新，以下回答基于旧版本。':'',
-      ...(m.answer?.blocks.flatMap(b=>[`\n### ${kinds[b.kind]} · ${states[b.status]}`,b.text,
-        ...b.citations.map(c=>`> ${c.title} · ${c.page?'PDF 第 '+c.page+' 页':'页码未知'} · ${c.evidence_id}\n> ${c.text.replace(/\n/g,'\n> ')}`)])||[m.error||m.stage]),m.answer?.question||''])].join('\n');
-    download('paper-tutor.md',text);
+  async function deleteChat(){
+    if(!thread||!window.confirm('删除当前助教对话及全部问答？删除后无法恢复。'))return;
+    setSending(true);setError('');
+    try {
+      await api(`/tutor/threads/${thread}`,{method:'DELETE'});
+      setThreads(items=>items.filter(item=>item.id!==thread));newThread();setDraft('');
+    }catch(e){setError((e as Error).message);}finally{setSending(false);}
+  }
+  async function exportChat(){
+    if(!thread)return;
+    setSending(true);setError('');
+    try {
+      const response=await fetch(`/api/tutor/threads/${thread}/pdf`);
+      if(!response.ok){const body=await response.json();throw new Error(body.detail||'PDF 导出失败。');}
+      const url=URL.createObjectURL(await response.blob());
+      const link=document.createElement('a');link.href=url;link.download='论文助教问答.pdf';link.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }catch(e){setError((e as Error).message);}finally{setSending(false);}
   }
   return <aside className={'tutor-panel'+(fullscreen?' tutor-fullscreen':'')} aria-label="AI 论文助教">
     <header className="tutor-head"><div><GraduationCap size={23}/><div><strong>论文助教</strong><small>理解方法，回到原文</small></div></div>
       <div className="tutor-window-actions"><button className="icon-button" aria-label={fullscreen?'退出全屏':'全屏显示助教'} title={fullscreen?'退出全屏':'全屏显示助教'} aria-pressed={fullscreen} onClick={()=>setFullscreen(!fullscreen)}>{fullscreen?<Minimize2 size={20}/>:<Maximize2 size={20}/>}</button><button className="icon-button" aria-label="收起助教" onClick={onClose}><X size={20}/></button></div></header>
     <div className="tutor-controls">
-      <div className="tutor-toolbar"><select aria-label="助教历史会话" value={thread} onChange={e=>{setThread(e.target.value);setMessages([]);setPinned([]);setError('');}}>
+      <div className="tutor-toolbar"><select aria-label="助教历史会话" disabled={sending} value={thread} onChange={e=>{setThread(e.target.value);setMessages([]);setPinned([]);setError('');}}>
         <option value="">新对话</option>{thread&&!threads.some(t=>t.id===thread)&&<option value={thread}>当前对话 · {scope.length} 篇</option>}{threads.map((t,i)=><option value={t.id} key={t.id}>对话 {threads.length-i} · {JSON.parse(t.scope).length} 篇</option>)}</select>
         <button className="icon-button" onClick={newThread} aria-label="新建助教对话" disabled={sending}><Plus size={18}/></button>
-        <button className="icon-button" onClick={exportChat} disabled={!messages.length} aria-label="导出助教对话"><Download size={18}/></button></div>
+        <button className="icon-button" onClick={deleteChat} disabled={!thread||pending||sending} aria-label="删除当前助教对话" title="删除当前对话"><Trash2 size={18}/></button><button className="icon-button" onClick={exportChat} disabled={!thread||!messages.some(m=>m.answer)||pending||sending} aria-label="导出问答 PDF" title="导出问答 PDF"><Download size={18}/></button></div>
       <details><summary>阅读范围 · {scope.length} 篇 <ChevronDown size={14}/></summary>
         {thread&&<small>当前对话范围固定；新建对话可重新选择。</small>}
         {papers.map(p=><label className="tutor-paper" key={p.id}><input type="checkbox" checked={scope.includes(p.id)} disabled={!!thread||sending} onChange={e=>setScope(e.target.checked?[...scope,p.id]:scope.filter(id=>id!==p.id))}/>{p.metadata.title}</label>)}</details>
