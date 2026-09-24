@@ -1,0 +1,19 @@
+[Unit]
+Description=PaperReview API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/PaperReview-Agent
+EnvironmentFile=/home/ubuntu/PaperReview-Agent/.env
+ExecStart=/home/ubuntu/PaperReview-Agent/.venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
