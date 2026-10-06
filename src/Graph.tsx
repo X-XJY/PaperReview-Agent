@@ -82,6 +82,11 @@ export default function Graph({
         {
           type: "graph",
           layout: layered && positions ? "none" : "force",
+          top: 48,
+          bottom: 64,
+          left: 40,
+          right: 40,
+          preserveAspect: true,
           roam: true,
           scaleLimit: { min: 0.3, max: 3 },
           draggable: true,
@@ -123,7 +128,7 @@ export default function Graph({
             name: r.scope,
             evidence: r.evidence_ids,
             label: {
-              show: true,
+              show: !allowLayeredLayout || !layered,
               formatter:
                 { inherits: "继承", improves: "改进", replaces: "替代" }[
                   r.type
