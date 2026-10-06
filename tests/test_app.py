@@ -35,6 +35,18 @@ def test_demo_contract_and_export(client):
     assert 'demo-atlas-e2' in report.text
     assert '可能' in report.text
 
+
+def test_demo_refreshes_old_version_without_overwriting_history(client):
+    original=demo(client)
+    assert demo(client)['id']==original['id']
+    with db.connection() as conn:
+        conn.execute('UPDATE jobs SET payload=? WHERE id=?',(json.dumps({'files':[]}),original['id']))
+    updated=demo(client)
+    assert updated['id']!=original['id']
+    assert demo(client)['id']==updated['id']
+    assert client.get('/api/jobs/'+original['id']).json()['result']==original['result']
+    assert len(updated['result']['papers'][0]['theory']['nodes'])==3
+
 def test_session_isolation_and_csrf(client):
     job=demo(client)
     with TestClient(app) as other:

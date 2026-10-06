@@ -147,11 +147,12 @@ def insert_job(conn, sid, payload, result=None, mode='live'):
 def demo(request: Request):
     sid = session(request)
     result = json.loads(Path('public/demo.json').read_text(encoding='utf-8'))
+    version = db.digest(result)
     with db.connection() as conn:
-        existing = conn.execute("SELECT id FROM jobs WHERE session=? AND stage='示例分析' ORDER BY created DESC LIMIT 1",(sid,)).fetchone()
-        if existing:
+        existing = conn.execute("SELECT id,payload FROM jobs WHERE session=? AND stage='示例分析' ORDER BY created DESC LIMIT 1",(sid,)).fetchone()
+        if existing and json.loads(existing['payload']).get('demo_version') == version:
             return {'id':existing['id']}
-        job_id = insert_job(conn,sid,{'files':[]},result,'demo')
+        job_id = insert_job(conn,sid,{'files':[],'demo_version':version},result,'demo')
     return {'id':job_id}
 
 @app.post('/api/jobs')
