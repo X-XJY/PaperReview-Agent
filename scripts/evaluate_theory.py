@@ -34,7 +34,7 @@ def reference_checks(result, reference):
 def main():
     sys.stdout.reconfigure(encoding='utf-8')
     parser=argparse.ArgumentParser()
-    parser.add_argument('arxiv_id',choices=['1406.2661','1706.03762'])
+    parser.add_argument('arxiv_id',choices=['1406.2661','1706.03762','1810.00826'])
     args=parser.parse_args()
     folder=db.DATA/'finals-evaluation'/args.arxiv_id
     folder.mkdir(parents=True,exist_ok=True)

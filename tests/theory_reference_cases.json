@@ -12,6 +12,14 @@
         "Proposition 2": ["容量", "最优", "足够小"]
       }
     },
+    "1810.00826": {
+      "title": "How Powerful are Graph Neural Networks?",
+      "source": "https://arxiv.org/html/1810.00826v3",
+      "section": "Sections 3–5 and Appendices A–H",
+      "labels": ["Definition 1 (Multiset)", "Lemma 2", "Theorem 3", "Lemma 4", "Lemma 5", "Corollary 6", "Lemma 7", "Corollary 8", "Corollary 9"],
+      "edges": [["Lemma 5", "Corollary 6"]],
+      "condition_checks": {"Theorem 3": ["单射"], "Lemma 5": ["可数", "有界"]}
+    },
     "1706.03762": {
       "title": "Attention Is All You Need",
       "source": "https://arxiv.org/abs/1706.03762",

@@ -22,6 +22,19 @@ def test_cycle_refuses_fake_order():
         theory.learning_paths([node('a'),node('b')], [edge('a','b'),edge('b','a')])
 
 
+def test_statement_header_survives_chunk_boundary():
+    evidence=[Evidence(id=str(i),paper_id='p',text=str(i)) for i in range(8)]
+    groups=list(theory.context_groups(evidence,lambda e:[e[:4],e[4:]]))
+    assert [e.id for e in groups[1]]==['2','3','4','5','6','7']
+    assert {e.id for group in groups for e in group}=={e.id for e in evidence}
+
+
+def test_proof_sections_stay_separate_and_keep_every_block():
+    evidence=[Evidence(id=str(i),paper_id='p',text=str(i),section='Main' if i<2 else 'Proof of Corollary 6') for i in range(4)]
+    groups=list(theory.proof_groups(evidence,lambda e:[e]))
+    assert [[e.id for e in group] for group in groups]==[['0','1'],['2','3']]
+
+
 def test_invalid_evidence_and_unverified_nodes_are_not_published(monkeypatch):
     good, missing, rejected = node('a'),node('b'),node('c')
     missing.evidence_ids=['invented']
@@ -36,6 +49,21 @@ def test_invalid_evidence_and_unverified_nodes_are_not_published(monkeypatch):
 def test_empirical_paper_can_have_no_theory(monkeypatch):
     monkeypatch.setattr(theory,'call',lambda *args: TheoryDraft(nodes=[]))
     assert theory.extract_theory([], 'j', lambda e:[e], lambda *args:{}).nodes == []
+
+
+def test_later_appendix_proof_is_not_discarded_by_early_edge():
+    evidence=[Evidence(id=key,paper_id='p',text=key) for key in ['e','proof']]
+    def caller(stage,data,*args):
+        refs=[block['id'] for block in data['evidence']]
+        return DependencyDraft(edges=[TheoryEdge(source='a',target='b',explanation=refs[-1],evidence_ids=[refs[-1]])])
+    def verifier(items,*args):
+        for item in items:
+            if 'dependency' in item['text']:
+                assert item['text']['dependency']['evidence_ids']==['e','proof']
+        return {item['id']:('supported','') for item in items}
+    result=theory.extract_theory(evidence,'j',lambda e:[[e[0]],[e[1]]],verifier,caller=caller,supplied_nodes=[node('a'),node('b')])
+    assert len(result.edges)==1
+    assert result.edges[0].evidence_ids==['e','proof']
 
 
 def test_selected_long_proof_preserved_without_search_quota():

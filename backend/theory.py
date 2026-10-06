@@ -4,6 +4,26 @@ from .schemas import TheoryNode, TheoryEdge, TheoryDraft, DependencyDraft, Theor
 from .llm import call
 
 
+def context_groups(evidence, chunker):
+    previous = []
+    for group in chunker(evidence):
+        # Carry boundary context so statement headers and following formulas stay together.
+        yield previous[-2:] + group
+        previous = group
+
+
+def proof_groups(evidence, chunker):
+    section, group = None, []
+    for block in evidence:
+        if group and block.section != section:
+            yield from context_groups(group, chunker)
+            group = []
+        section = block.section
+        group.append(block)
+    if group:
+        yield from context_groups(group, chunker)
+
+
 def learning_paths(nodes, edges):
     parents = {node.id: set() for node in nodes}
     for edge in edges:
@@ -32,7 +52,7 @@ def learning_paths(nodes, edges):
 def extract_theory(evidence, job_id, chunker, verifier, caller=None, supplied_nodes=None):
     caller = caller or call
     nodes, seen = list(supplied_nodes or []), set()
-    for group in ([] if supplied_nodes is not None else chunker(evidence)):
+    for group in ([] if supplied_nodes is not None else context_groups(evidence, chunker)):
         draft = caller('theory', {'evidence': [e.model_dump() for e in group]}, TheoryDraft, job_id)
         group_ids = {e.id for e in group}
         for node in draft.nodes:
@@ -49,9 +69,9 @@ def extract_theory(evidence, job_id, chunker, verifier, caller=None, supplied_no
     if not nodes:
         return Theory(warnings=[f'{rejected_nodes} 条候选理论陈述未通过原文核验，未纳入图谱。'] if rejected_nodes else [])
     ids = {n.id for n in nodes}
-    edges, edge_keys = [], set()
+    edges, edge_keys = [], {}
     # Proof text may be distant from a statement; examine every source block.
-    for group in chunker(evidence):
+    for group in proof_groups(evidence, chunker):
         draft = caller('theory_dependencies', {
             'nodes': [n.model_dump() for n in nodes],
             'evidence': [e.model_dump() for e in group],
@@ -59,11 +79,17 @@ def extract_theory(evidence, job_id, chunker, verifier, caller=None, supplied_no
         group_ids = {e.id for e in group}
         for edge in draft.edges:
             key = (edge.source, edge.target)
-            if key in edge_keys or edge.source == edge.target or not {edge.source, edge.target} <= ids:
+            if edge.source == edge.target or not {edge.source, edge.target} <= ids:
                 continue
             if not edge.evidence_ids or not set(edge.evidence_ids) <= group_ids:
                 continue
-            edge_keys.add(key)
+            if key in edge_keys:
+                existing = edge_keys[key]
+                existing.evidence_ids = list(dict.fromkeys(existing.evidence_ids + edge.evidence_ids))
+                if edge.explanation not in existing.explanation:
+                    existing.explanation += '\n' + edge.explanation
+                continue
+            edge_keys[key] = edge
             edges.append(edge)
     lookup = {n.id: n.model_dump() for n in nodes}
     items = [{'id': f'proof-{i}', 'text': {

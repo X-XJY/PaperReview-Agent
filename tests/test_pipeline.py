@@ -33,6 +33,17 @@ def test_long_document_no_silent_truncation():
     assert [e.id for g in groups for e in g]==[e.id for e in evidence]
     assert len(groups)>1
 
+
+def test_verifier_keeps_source_order_for_opaque_evidence_ids(monkeypatch):
+    evidence=[Evidence(id=key,paper_id='p',text=key) for key in ['b1','b2','b10','b11']]
+    received=[]
+    def check(stage,data,*args):
+        received.extend(block['id'] for block in data['evidence'])
+        return Verification(checks=[])
+    monkeypatch.setattr(pipeline,'call',check)
+    pipeline.verify_items([{'id':'claim','text':'proof','evidence_ids':['b2','b10']}],evidence,'job')
+    assert received==['b1','b2','b10','b11']
+
 def test_synthesis_rejects_fabricated_graph_and_single_paper_gap(monkeypatch):
     result=json.loads(Path('public/demo.json').read_text(encoding='utf-8'))
     papers=[Paper.model_validate(p) for p in result['papers']]

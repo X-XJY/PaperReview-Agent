@@ -46,7 +46,9 @@ def verify_items(items, evidence, job_id):
             for index, block in enumerate(evidence):
                 if block.id in set(ref for item in valid for ref in item['evidence_ids']):
                     wanted.update(e.id for e in evidence[max(0,index-1):index+2] if e.paper_id == block.paper_id)
-            verification = call('verify', {'items':valid,'evidence':[available[k].model_dump() for k in sorted(wanted)]}, Verification, job_id)
+            # Evidence IDs are opaque: lexical sorting puts b10 before b2 and
+            # can separate proof headings from their paragraphs.
+            verification = call('verify', {'items':valid,'evidence':[block.model_dump() for block in evidence if block.id in wanted]}, Verification, job_id)
             ids = [check.id for check in verification.checks]
             for item in valid:
                 matches = [check for check in verification.checks if check.id == item['id']]
