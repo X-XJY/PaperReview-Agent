@@ -1,6 +1,15 @@
 {
   "scope": "小样本冒烟检查，不代表总体准确率；参考项由开发代理核对公开原文，尚未完成独立人工复核。",
   "cases": {
+    "1703.06114": {
+      "title": "Deep Sets",
+      "source": "https://arxiv.org/html/1703.06114v3",
+      "section": "Section 2 and Appendix A/B; exclude borrowed Theorems 5 and 8",
+      "labels": ["Theorem 2", "Lemma 3", "Lemma 4", "Lemma 6", "Theorem 7", "Theorem 9"],
+      "edges": [["Lemma 4", "Lemma 6"], ["Lemma 4", "Theorem 7"], ["Lemma 6", "Theorem 7"]],
+      "condition_checks": {"Theorem 2": ["可数"], "Lemma 3": ["双射"], "Theorem 9": ["紧", "固定"]},
+      "first_run_role": "未参与前面三篇提示调试的新样本；参考项仍须独立人工复核"
+    },
     "1406.2661": {
       "title": "Generative Adversarial Nets",
       "source": "https://arxiv.org/html/1406.2661v1",

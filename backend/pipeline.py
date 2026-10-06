@@ -7,6 +7,7 @@ from .schemas import Metadata, Extraction, Classification, Paper, Synthesis, Ver
 from .theory import extract_theory
 
 ONTOLOGY = json.loads(Path(__file__).with_name('ontology.json').read_text(encoding='utf-8'))
+PIPELINE_VERSION = '2.1.0'
 
 def label_ids(nodes):
     return {node['id'] for node in nodes} | {key for node in nodes for key in label_ids(node.get('children',[]))}
@@ -32,8 +33,10 @@ def verify_items(items, evidence, job_id):
     available = {e.id:e for e in evidence}
     results = {}
     # Bounded groups keep the verifier from losing individual claims in a long context.
-    for start in range(0,len(items),8):
-        group = items[start:start+8]
+    theory_items = any(isinstance(item['text'], dict) and ('dependency' in item['text'] or 'statement' in item['text'] and 'kind' in item['text']) for item in items)
+    group_size = 1 if theory_items else 8
+    for start in range(0,len(items),group_size):
+        group = items[start:start+group_size]
         valid = []
         for item in group:
             if not refs_valid(item['evidence_ids'],available):
@@ -48,7 +51,8 @@ def verify_items(items, evidence, job_id):
                     wanted.update(e.id for e in evidence[max(0,index-1):index+2] if e.paper_id == block.paper_id)
             # Evidence IDs are opaque: lexical sorting puts b10 before b2 and
             # can separate proof headings from their paragraphs.
-            verification = call('verify', {'items':valid,'evidence':[block.model_dump() for block in evidence if block.id in wanted]}, Verification, job_id)
+            proof_only = all(isinstance(item['text'], dict) and 'dependency' in item['text'] for item in valid)
+            verification = call('verify_proof' if proof_only else 'verify', {'items':valid,'evidence':[block.model_dump() for block in evidence if block.id in wanted]}, Verification, job_id)
             ids = [check.id for check in verification.checks]
             for item in valid:
                 matches = [check for check in verification.checks if check.id == item['id']]

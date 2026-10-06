@@ -228,6 +228,7 @@ export default function Theory({
                 <h4>证明依赖</h4>
                 {theory.status !== "pending" && (
                   <Graph
+                    allowLayeredLayout
                     highlightIds={path}
                     ariaLabel="理论证明依赖图；箭头由前提指向结果"
                     papers={theory.nodes.map((n) => ({

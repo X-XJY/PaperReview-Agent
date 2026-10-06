@@ -47,6 +47,15 @@ def test_demo_refreshes_old_version_without_overwriting_history(client):
     assert client.get('/api/jobs/'+original['id']).json()['result']==original['result']
     assert len(updated['result']['papers'][0]['theory']['nodes'])==3
 
+
+def test_business_pipeline_version_invalidates_whole_job_reuse(monkeypatch):
+    from backend import main, prompts
+    before=main.pipeline_signature()
+    prompt_version=prompts.VERSION
+    monkeypatch.setattr(main,'PIPELINE_VERSION','new-business-processing')
+    assert main.pipeline_signature()!=before
+    assert prompts.VERSION==prompt_version
+
 def test_session_isolation_and_csrf(client):
     job=demo(client)
     with TestClient(app) as other:

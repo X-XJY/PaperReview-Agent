@@ -67,6 +67,14 @@ class TheoryEdge(Strict):
 class TheoryDraft(Strict):
     nodes: list[TheoryNode]
 
+class TheoryConditionAddition(Strict):
+    node_id: str
+    conditions: list[str]
+    evidence_ids: list[str]
+
+class TheoryConditionsDraft(Strict):
+    additions: list[TheoryConditionAddition]
+
 
 class DependencyDraft(Strict):
     edges: list[TheoryEdge]

@@ -12,7 +12,7 @@ from pypdf import PdfReader
 from pydantic import BaseModel, Field
 from . import db
 from .config import DATA, MAX_FILES, MAX_BYTES, MAX_PAGES, configured
-from .pipeline import ONTOLOGY
+from .pipeline import ONTOLOGY, PIPELINE_VERSION
 from .prompts import VERSION
 from .report import report
 from .schemas import Edit, Paper, Claim, TheoryEdit, Theory
@@ -59,7 +59,7 @@ def public(job):
     return {k:v for k,v in job.items() if k not in ('session','payload')}
 
 def pipeline_signature():
-    return db.digest({'version':VERSION,'ontology':ONTOLOGY,'model':os.getenv('LLM_MODEL'),'base':os.getenv('LLM_BASE_URL'),'structured':os.getenv('LLM_JSON_SCHEMA'),'thinking':os.getenv('LLM_THINKING'),'max_tokens':os.getenv('LLM_MAX_OUTPUT_TOKENS','10000')})
+    return db.digest({'version':VERSION,'pipeline_version':PIPELINE_VERSION,'ontology':ONTOLOGY,'model':os.getenv('LLM_MODEL'),'base':os.getenv('LLM_BASE_URL'),'structured':os.getenv('LLM_JSON_SCHEMA'),'thinking':os.getenv('LLM_THINKING'),'max_tokens':os.getenv('LLM_MAX_OUTPUT_TOKENS','10000')})
 
 @app.get('/api/session')
 def create_session(request: Request, response: Response):

@@ -43,7 +43,8 @@ def reference_passed(checks):
 def main():
     sys.stdout.reconfigure(encoding='utf-8')
     parser=argparse.ArgumentParser()
-    parser.add_argument('arxiv_id',choices=['1406.2661','1706.03762','1810.00826'])
+    references=json.loads(Path('tests/theory_reference_cases.json').read_text(encoding='utf-8'))['cases']
+    parser.add_argument('arxiv_id',choices=sorted(references))
     parser.add_argument('--strict',action='store_true',help='参考项漏检或出现多余项时返回失败；仅适用于开发回归检查。')
     args=parser.parse_args()
     folder=db.DATA/'finals-evaluation'/args.arxiv_id
@@ -72,12 +73,16 @@ def main():
     summary={'paper':args.arxiv_id,'nodes':[{ 'label':n.label,'kind':n.kind,'conditions':n.conditions} for n in result.nodes],
              'edges':[{ 'source':labels[e.source],'target':labels[e.target],'explanation':e.explanation} for e in result.edges],
              'warnings':result.warnings}
-    reference=json.loads(Path('tests/theory_reference_cases.json').read_text(encoding='utf-8'))['cases'][args.arxiv_id]
+    reference=references[args.arxiv_id]
     summary['reference_checks']=reference_checks(result,reference)
     summary['reference_passed']=reference_passed(summary['reference_checks'])
     after=db.get(job)
     summary['run_metrics']={'elapsed_seconds':round(time.monotonic()-started,2),
                             **{key:after[key]-before[key] for key in ('calls','input_tokens','output_tokens','cache_hits')}}
+    run_folder=folder/'runs'/str(time.time_ns())
+    run_folder.mkdir(parents=True,exist_ok=True)
+    (run_folder/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
+    (run_folder/'theory.json').write_text(result.model_dump_json(indent=2),encoding='utf-8')
     (folder/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(summary,ensure_ascii=False),flush=True)
     db.update(job,status='completed',stage='理论评测完成')
