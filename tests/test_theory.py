@@ -35,6 +35,16 @@ def test_proof_sections_stay_separate_and_keep_every_block():
     assert [[e.id for e in group] for group in groups]==[['0','1'],['2','3']]
 
 
+def test_evaluation_does_not_hide_duplicate_labels_or_missing_conditions():
+    from scripts.evaluate_theory import reference_checks,reference_passed
+    from backend.schemas import Theory
+    checks=reference_checks(Theory(nodes=[node('a'),node('a')]),{'labels':['a'],'edges':[],'condition_checks':{}})
+    assert checks['duplicate_labels']==['a']
+    assert not reference_passed(checks)
+    checks=reference_checks(Theory(nodes=[node('a')]),{'labels':['a'],'edges':[],'condition_checks':{'a':['条件']}})
+    assert not reference_passed(checks)
+
+
 def test_invalid_evidence_and_unverified_nodes_are_not_published(monkeypatch):
     good, missing, rejected = node('a'),node('b'),node('c')
     missing.evidence_ids=['invented']

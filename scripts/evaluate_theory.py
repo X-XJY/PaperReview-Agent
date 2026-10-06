@@ -8,6 +8,7 @@ import hashlib
 import json
 import time
 import sys
+from collections import Counter
 from pathlib import Path
 import httpx
 from backend import db
@@ -23,6 +24,7 @@ def reference_checks(result, reference):
     edges={(labels[e.source],labels[e.target]) for e in result.edges}
     conditions={n.label:' '.join(n.conditions) for n in result.nodes}
     return {'expected_nodes_found':len(actual&expected),'expected_nodes':len(expected),
+            'duplicate_labels':sorted(label for label,count in Counter(n.label for n in result.nodes).items() if count>1),
             'unexpected_labels':sorted(actual-expected),'missing_labels':sorted(expected-actual),
             'expected_edges_found':len(edges&{tuple(e) for e in reference['edges']}),
             'expected_edges':len(reference['edges']),
@@ -31,10 +33,18 @@ def reference_checks(result, reference):
                                         for label,terms in reference['condition_checks'].items()}}
 
 
+def reference_passed(checks):
+    return (checks['expected_nodes_found']==checks['expected_nodes']
+            and checks['expected_edges_found']==checks['expected_edges']
+            and not any(checks.get(key) for key in ('duplicate_labels','unexpected_labels','missing_labels','unexpected_edges'))
+            and all(found for terms in checks['condition_keyword_checks'].values() for found in terms.values()))
+
+
 def main():
     sys.stdout.reconfigure(encoding='utf-8')
     parser=argparse.ArgumentParser()
     parser.add_argument('arxiv_id',choices=['1406.2661','1706.03762','1810.00826'])
+    parser.add_argument('--strict',action='store_true',help='参考项漏检或出现多余项时返回失败；仅适用于开发回归检查。')
     args=parser.parse_args()
     folder=db.DATA/'finals-evaluation'/args.arxiv_id
     folder.mkdir(parents=True,exist_ok=True)
@@ -51,6 +61,8 @@ def main():
     with db.connection() as conn:
         conn.execute("INSERT OR IGNORE INTO jobs(id,session,status,stage,payload,created,updated) VALUES(?,?,'running','理论评测',?, ?,?)",(job,'local-evaluation',json.dumps({'files':[]}),time.time(),time.time()))
         conn.execute('UPDATE jobs SET payload=? WHERE id=?',(json.dumps({'files':[]}),job))
+    before=db.get(job)
+    started=time.monotonic()
     evidence=parse(pdf,digest,job)
     print(json.dumps({'paper':args.arxiv_id,'blocks':len(evidence),'phase':'parsed'}),flush=True)
     result=extract_theory(evidence,job,chunks,verify_items)
@@ -62,9 +74,15 @@ def main():
              'warnings':result.warnings}
     reference=json.loads(Path('tests/theory_reference_cases.json').read_text(encoding='utf-8'))['cases'][args.arxiv_id]
     summary['reference_checks']=reference_checks(result,reference)
+    summary['reference_passed']=reference_passed(summary['reference_checks'])
+    after=db.get(job)
+    summary['run_metrics']={'elapsed_seconds':round(time.monotonic()-started,2),
+                            **{key:after[key]-before[key] for key in ('calls','input_tokens','output_tokens','cache_hits')}}
     (folder/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(summary,ensure_ascii=False),flush=True)
     db.update(job,status='completed',stage='理论评测完成')
+    if args.strict and not summary['reference_passed']:
+        raise SystemExit(2)
 
 
 if __name__=='__main__':
