@@ -98,10 +98,103 @@
           "text": "Compare the retrieved passages with a manually annotated evidence set.",
           "page": 4,
           "section": "4 Evaluation"
+        },
+        {
+          "id": "demo-atlas-theory-e0",
+          "paper_id": "demo-atlas",
+          "text": "Definition 1. For a nonempty set R of relevant evidence and a retrieved set S, recall is |R intersection S| / |R|.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-atlas-theory-e1",
+          "paper_id": "demo-atlas",
+          "text": "Lemma 1. If S is a subset of T, then R intersection S is a subset of R intersection T. Proof: any element in R intersection S belongs to R and S, hence to R and T.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-atlas-theory-e2",
+          "paper_id": "demo-atlas",
+          "text": "Theorem 1. For fixed nonempty R and S subset T, recall(S) <= recall(T). Proof: Lemma 1 gives |R intersection S| <= |R intersection T|. Divide by the positive |R| and apply Definition 1. This says nothing about precision or answer accuracy.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
         }
       ],
       "revision": 1,
-      "warnings": []
+      "warnings": [],
+      "theory": {
+        "status": "ready",
+        "nodes": [
+          {
+            "id": "demo-atlas-theory-0",
+            "kind": "definition",
+            "label": "Definition 1 · 证据召回率",
+            "statement": "设相关证据集合 R 非空，检索集合为 S，定义召回率为 |R ∩ S| / |R|。",
+            "conditions": [],
+            "evidence_ids": [
+              "demo-atlas-theory-e0"
+            ]
+          },
+          {
+            "id": "demo-atlas-theory-1",
+            "kind": "lemma",
+            "label": "Lemma 1 · 交集单调性",
+            "statement": "若 S ⊆ T，则 R ∩ S ⊆ R ∩ T。",
+            "conditions": [
+              "S ⊆ T"
+            ],
+            "evidence_ids": [
+              "demo-atlas-theory-e1"
+            ]
+          },
+          {
+            "id": "demo-atlas-theory-2",
+            "kind": "theorem",
+            "label": "Theorem 1 · 召回率单调性",
+            "statement": "在相关证据集合固定且非空、S ⊆ T 时，扩大检索集合不会降低该定义下的召回率。",
+            "conditions": [
+              "R 固定且非空",
+              "S ⊆ T"
+            ],
+            "evidence_ids": [
+              "demo-atlas-theory-e2"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "source": "demo-atlas-theory-0",
+            "target": "demo-atlas-theory-2",
+            "explanation": "原创教学证明显式使用Definition 1 · 证据召回率",
+            "evidence_ids": [
+              "demo-atlas-theory-e2"
+            ]
+          },
+          {
+            "source": "demo-atlas-theory-1",
+            "target": "demo-atlas-theory-2",
+            "explanation": "原创教学证明显式使用Lemma 1 · 交集单调性",
+            "evidence_ids": [
+              "demo-atlas-theory-e2"
+            ]
+          }
+        ],
+        "learning_paths": {
+          "demo-atlas-theory-0": [
+            "demo-atlas-theory-0"
+          ],
+          "demo-atlas-theory-1": [
+            "demo-atlas-theory-1"
+          ],
+          "demo-atlas-theory-2": [
+            "demo-atlas-theory-0",
+            "demo-atlas-theory-1",
+            "demo-atlas-theory-2"
+          ]
+        },
+        "warnings": []
+      }
     },
     {
       "id": "demo-fusion",
@@ -214,7 +307,14 @@
         }
       ],
       "revision": 1,
-      "warnings": []
+      "warnings": [],
+      "theory": {
+        "status": "ready",
+        "nodes": [],
+        "edges": [],
+        "learning_paths": {},
+        "warnings": []
+      }
     },
     {
       "id": "demo-loop",
@@ -316,7 +416,14 @@
         }
       ],
       "revision": 1,
-      "warnings": []
+      "warnings": [],
+      "theory": {
+        "status": "ready",
+        "nodes": [],
+        "edges": [],
+        "learning_paths": {},
+        "warnings": []
+      }
     },
     {
       "id": "demo-reflect",
@@ -418,7 +525,14 @@
         }
       ],
       "revision": 1,
-      "warnings": []
+      "warnings": [],
+      "theory": {
+        "status": "ready",
+        "nodes": [],
+        "edges": [],
+        "learning_paths": {},
+        "warnings": []
+      }
     },
     {
       "id": "demo-verify",
@@ -520,7 +634,14 @@
         }
       ],
       "revision": 1,
-      "warnings": []
+      "warnings": [],
+      "theory": {
+        "status": "ready",
+        "nodes": [],
+        "edges": [],
+        "learning_paths": {},
+        "warnings": []
+      }
     }
   ],
   "failures": [],

@@ -19,6 +19,8 @@ def test_full_batch_correction_recompute_and_cache(tmp_path,monkeypatch,count):
         return [Evidence(id=paper_id+'-e1',paper_id=paper_id,text='Method retrieves documents. Limitation: single domain.',page=1)]
     monkeypatch.setattr(pipeline,'parse',parse)
     def call(stage,data,schema,job_id):
+        if stage == 'theory':
+            return schema(nodes=[])
         if stage=='metadata':
             return Metadata(title='Test '+data['evidence'][0]['paper_id'][:8],authors=['A'],year=2020,venue=None,task='QA',evidence_ids=[data['evidence'][0]['id']])
         if stage=='extract':

@@ -48,6 +48,43 @@ class Classification(Strict):
     rationale: str
     evidence_ids: list[str]
 
+class TheoryNode(Strict):
+    id: str
+    kind: Literal['definition', 'assumption', 'lemma', 'theorem', 'proposition', 'corollary']
+    label: str
+    statement: str
+    conditions: list[str]
+    evidence_ids: list[str]
+
+
+class TheoryEdge(Strict):
+    source: str
+    target: str
+    explanation: str
+    evidence_ids: list[str]
+
+
+class TheoryDraft(Strict):
+    nodes: list[TheoryNode]
+
+
+class DependencyDraft(Strict):
+    edges: list[TheoryEdge]
+
+
+class Theory(Strict):
+    status: Literal['ready', 'pending'] = 'ready'
+    nodes: list[TheoryNode] = Field(default_factory=list)
+    edges: list[TheoryEdge] = Field(default_factory=list)
+    # Each target has an independent path; disconnected results are not prerequisites.
+    learning_paths: dict[str, list[str]] = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)
+
+class TheoryEdit(Strict):
+    revision: int = Field(ge=1)
+    nodes: list[TheoryNode]
+
+
 class Paper(Strict):
     id: str
     filename: str
@@ -57,6 +94,7 @@ class Paper(Strict):
     evidence: list[Evidence]
     revision: int = 1
     warnings: list[str] = Field(default_factory=list)
+    theory: Theory | None = None
 
 class Relation(Strict):
     source: str

@@ -9,10 +9,14 @@ export default function Graph({
   papers,
   synthesis,
   onEvidence,
+  ariaLabel = "方法演进力导向图；下方另有可访问的关系列表",
+  highlightIds,
 }: {
   papers: Paper[];
   synthesis: Synthesis | null;
   onEvidence: (ids: string[]) => void;
+  ariaLabel?: string;
+  highlightIds?: string[];
 }) {
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -46,6 +50,7 @@ export default function Graph({
             name: p.extraction.method_name,
             symbolSize: 52 + i * 3,
             itemStyle: {
+              opacity: !highlightIds || highlightIds.includes(p.id) ? 1 : 0.25,
               color: ["#1b6870", "#3371ac", "#9a7544", "#675a9a", "#537c65"][
                 i % 5
               ],
@@ -53,6 +58,7 @@ export default function Graph({
             evidence: p.extraction.methods.flatMap((c) => c.evidence_ids),
           })),
           links: relations.map((r) => ({
+            lineStyle: { opacity: !highlightIds || (highlightIds.includes(r.source) && highlightIds.includes(r.target)) ? 1 : 0.15 },
             source: r.source,
             target: r.target,
             name: r.scope,
@@ -62,7 +68,7 @@ export default function Graph({
               formatter:
                 { inherits: "继承", improves: "改进", replaces: "替代" }[
                   r.type
-                ] || r.type,
+                ] || (r.type === 'depends' ? '证明依赖' : r.type),
               fontSize: 12,
             },
           })),
@@ -79,13 +85,13 @@ export default function Graph({
       observer.disconnect();
       chart.dispose();
     };
-  }, [papers, synthesis, onEvidence]);
+  }, [papers, synthesis, onEvidence, highlightIds]);
   return (
     <div
       ref={container}
       className="graph"
       role="img"
-      aria-label="方法演进力导向图；下方另有可访问的关系列表"
+      aria-label={ariaLabel}
     />
   );
 }

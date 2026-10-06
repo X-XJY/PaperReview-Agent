@@ -51,6 +51,7 @@ import type {
 } from "./types";
 const Graph = lazy(() => import("./Graph"));
 const Tutor = lazy(() => import('./Tutor'));
+const Theory = lazy(() => import('./Theory'));
 const statuses: Record<Status, string> = {
   supported: "有据支持",
   partial: "部分支持",
@@ -64,6 +65,7 @@ const fields: Record<Field, string> = {
   future_work: "作者未来工作",
 };
 const tabs = [
+  { id: "theory", label: "理论与学习路径", icon: Layers },
   { id: "matrix", label: "对比矩阵", icon: Table2 },
   { id: "papers", label: "论文详情", icon: BookOpen },
   { id: "timeline", label: "技术时间轴", icon: Clock3 },
@@ -198,7 +200,8 @@ export default function App() {
         " " +
         p.extraction.method_name +
         " " +
-        p.classification.method_ids.join(" ")
+        p.classification.method_ids.join(" ") + " " +
+        (p.theory?.nodes.map(n=>n.label+' '+n.statement).join(' ') || '')
       )
         .toLowerCase()
         .includes(query.toLowerCase()) &&
@@ -454,8 +457,8 @@ export default function App() {
             <Network size={19} />
           </span>
           <div>
-            <strong>检索增强生成</strong>
-            <small>RAG · 本体 v1.0</small>
+            <strong>计算机学科</strong>
+            <small>AI · 算法 · 系统 · 本体 v2.0</small>
           </div>
         </div>
         <p className="side-copy">
@@ -968,6 +971,7 @@ export default function App() {
                     </div>
                   </div>
                 )}
+                {tab === "theory" && <Suspense fallback={<div className="empty">正在加载理论分析…</div>}><Theory papers={filtered} onEvidence={showEvidence} jobId={job!.id} editable={connected && job?.result?.mode==='live' && !['queued','running'].includes(job.status)} onUpdate={setJob} onTutor={askTutor}/></Suspense>}
                 {tab === "graph" && (
                   <div className="graph-view">
                     <div className="view-note">

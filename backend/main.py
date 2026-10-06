@@ -15,7 +15,7 @@ from .config import DATA, MAX_FILES, MAX_BYTES, MAX_PAGES, configured
 from .pipeline import ONTOLOGY
 from .prompts import VERSION
 from .report import report
-from .schemas import Edit, Paper, Claim
+from .schemas import Edit, Paper, Claim, TheoryEdit, Theory
 
 @asynccontextmanager
 async def lifespan(app):
@@ -242,6 +242,39 @@ def edit_paper(job_id: str, paper_id: str, edit: Edit, request: Request):
         result['papers'] = [updated if p['id']==paper_id else p for p in result['papers']]
         payload = json.loads(row['payload'])
         payload['dirty_papers'] = sorted(set(payload.get('dirty_papers',[])+[paper_id]))
+        conn.execute('INSERT INTO revisions VALUES(?,?,?,?,?,?)',(db.uid(),job_id,paper_id,before,json.dumps(updated,ensure_ascii=False),time.time()))
+        conn.execute('UPDATE jobs SET result=?,payload=?,stale=1,updated=? WHERE id=?',(json.dumps(result,ensure_ascii=False),json.dumps(payload),time.time(),job_id))
+    return public(db.get(job_id))
+
+@app.patch('/api/jobs/{job_id}/papers/{paper_id}/theory')
+def edit_theory(job_id: str, paper_id: str, edit: TheoryEdit, request: Request):
+    owned(job_id,request)
+    with db.connection() as conn:
+        conn.execute('BEGIN IMMEDIATE')
+        row = conn.execute('SELECT * FROM jobs WHERE id=?',(job_id,)).fetchone()
+        if row['status'] in ('queued','running'):
+            raise HTTPException(409,'处理过程中不能编辑，请稍后重试。')
+        result = json.loads(row['result']) if row['result'] else {}
+        data = next((p for p in result.get('papers',[]) if p['id']==paper_id),None)
+        if not data:
+            raise HTTPException(404,'未找到论文。')
+        paper = Paper.model_validate(data)
+        if paper.revision != edit.revision:
+            raise HTTPException(409,'论文版本已变化，请刷新后重新编辑。')
+        available = {e.id for e in paper.evidence}
+        ids = [n.id for n in edit.nodes]
+        if len(ids) != len(set(ids)) or any(not key.strip() for key in ids):
+            raise HTTPException(422,'理论节点编号必须非空且唯一。')
+        for node in edit.nodes:
+            if not node.label.strip() or not node.statement.strip() or not node.evidence_ids or not set(node.evidence_ids) <= available:
+                raise HTTPException(422,'每个理论节点需要名称、完整陈述和本篇论文中的原文证据。')
+        before = json.dumps(paper.model_dump(),ensure_ascii=False)
+        paper.theory = Theory(nodes=edit.nodes,status='pending')
+        paper.revision += 1
+        updated = paper.model_dump()
+        result['papers'] = [updated if p['id']==paper_id else p for p in result['papers']]
+        payload = json.loads(row['payload'])
+        payload['dirty_theories'] = sorted(set(payload.get('dirty_theories',[])+[paper_id]))
         conn.execute('INSERT INTO revisions VALUES(?,?,?,?,?,?)',(db.uid(),job_id,paper_id,before,json.dumps(updated,ensure_ascii=False),time.time()))
         conn.execute('UPDATE jobs SET result=?,payload=?,stale=1,updated=? WHERE id=?',(json.dumps(result,ensure_ascii=False),json.dumps(payload),time.time(),job_id))
     return public(db.get(job_id))

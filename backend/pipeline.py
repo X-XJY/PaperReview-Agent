@@ -4,6 +4,7 @@ from . import db
 from .llm import call
 from .mineru import parse
 from .schemas import Metadata, Extraction, Classification, Paper, Synthesis, Verification
+from .theory import extract_theory
 
 ONTOLOGY = json.loads(Path(__file__).with_name('ontology.json').read_text(encoding='utf-8'))
 
@@ -121,7 +122,7 @@ def synthesize(papers, job_id):
     cards = []
     wanted = set()
     for paper in papers:
-        card = paper.model_dump(exclude={'evidence'})
+        card = paper.model_dump(exclude={'evidence', 'theory'})
         for field in ('methods','advantages','limitations','future_work'):
             card['extraction'][field] = [c.model_dump() for c in getattr(paper.extraction,field) if c.status == 'supported' and c.kind != 'human_note']
             wanted.update(ref for c in card['extraction'][field] for ref in c['evidence_ids'])
@@ -175,6 +176,7 @@ def run(job):
         db.update(job['id'],status='failed',stage='处理失败',error='没有成功处理的论文。可查看单篇错误后重试。')
         return
     dirty = set(job['payload'].get('dirty_papers',[]))
+    dirty_theories = set(job['payload'].get('dirty_theories',[]))
     for index,paper in enumerate(papers):
         if paper.id in dirty:
             db.update(job['id'],stage='重新核验人工修正')
@@ -184,8 +186,18 @@ def run(job):
             classification.method_ids = [v for v in classification.method_ids if v in label_ids(ONTOLOGY['methods'])]
             paper.classification = classification
             papers[index] = verify_paper(paper,job['id'])
+        if paper.theory is None or paper.id in dirty_theories:
+            db.update(job['id'],stage=f'理论结果与证明依赖 · {paper.filename}')
+            try:
+                supplied = paper.theory.nodes if paper.id in dirty_theories and paper.theory is not None else None
+                paper.theory = extract_theory(paper.evidence,job['id'],chunks,verify_items,call,supplied_nodes=supplied)
+                dirty_theories.discard(paper.id)
+            except Exception as error:
+                output['failures'].append({'filename':paper.filename,'message':str(error) if isinstance(error,RuntimeError) else '理论分析失败，方法分析已保存，可重试。'})
+            output['papers'] = [p.model_dump() for p in papers]
+            db.update(job['id'],result=json.dumps(output,ensure_ascii=False))
     output['papers'] = [p.model_dump() for p in papers]
     db.update(job['id'],stage='演进推导与聚合核验',result=json.dumps(output,ensure_ascii=False))
     output['synthesis'] = synthesize(papers,job['id']).model_dump()
-    payload = {**job['payload'],'dirty_papers':[]}
-    db.update(job['id'],status='partial' if output['failures'] else 'completed',stage='分析完成',stale=0,error=None,payload=json.dumps(payload),result=json.dumps(output,ensure_ascii=False))
+    payload = {**job['payload'],'dirty_papers':[],'dirty_theories':sorted(dirty_theories)}
+    db.update(job['id'],status='partial' if output['failures'] else 'completed',stage='分析完成',stale=int(bool(dirty_theories)),error=None,payload=json.dumps(payload),result=json.dumps(output,ensure_ascii=False))

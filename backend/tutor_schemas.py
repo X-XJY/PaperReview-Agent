@@ -12,7 +12,7 @@ class TutorRequest(Strict):
     mode: Literal['direct','guided'] = 'direct'
     depth: Literal['intuitive','technical'] = 'intuitive'
     paper_only: bool = False
-    evidence_ids: list[str] = Field(default_factory=list, max_length=8)
+    evidence_ids: list[str] = Field(default_factory=list)
 
 class TutorQuery(Strict):
     keywords: list[str] = Field(max_length=12)

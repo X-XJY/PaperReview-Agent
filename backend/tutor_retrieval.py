@@ -33,6 +33,10 @@ def retrieve(papers, question, keywords=(), pinned=()):
                     continue
                 for ref in claim.evidence_ids:
                     cards[ref] = cards.get(ref,'') + ' ' + claim.text
+        if paper.theory and paper.theory.status == 'ready':
+            for node in paper.theory.nodes:
+                for ref in node.evidence_ids:
+                    cards[ref] = cards.get(ref,'') + ' ' + node.label + ' ' + node.statement
         for e in paper.evidence:
             for start in range(0,len(e.text),1100):
                 excerpt=e.text[start:start+1400]
@@ -46,7 +50,15 @@ def retrieve(papers, question, keywords=(), pinned=()):
         # Explicit overlap keeps tiny corpora usable when BM25's IDF is zero/negative.
         ranked=sorted(range(len(rows)),key=lambda i:(rows[i]['evidence_id'] in pinned,
                       sum(t in set(corpus[i]) for t in set(query)),float(scores[i])),reverse=True)
+        # User-selected evidence is included in full, without the ranked-search quota.
+        # A long proof must not silently lose its assumptions or final paragraph.
         seen=set()
+        for e in paper.evidence:
+            if e.id in pinned:
+                chosen.append({'evidence_id':e.id,'paper_id':paper.id,'page':e.page,
+                               'section':e.section,'text':e.text,'offset':0})
+                seen.add(e.id)
+        extras=0
         for i in ranked:
             row=rows[i]
             if row['evidence_id'] in seen:
@@ -55,6 +67,7 @@ def retrieve(papers, question, keywords=(), pinned=()):
                 continue
             seen.add(row['evidence_id'])
             chosen.append(row)
-            if len(seen)>=quota:
+            extras+=1
+            if extras>=quota:
                 break
     return chosen

@@ -1,1 +1,378 @@
-{"version":"rag-1.0","domain":"检索增强生成（RAG）","tasks":[{"id":"task.qa","label":"问答","definition":"针对问题生成基于证据的答案","children":[{"id":"task.qa.open","label":"开放域问答","definition":"从开放知识集合回答问题"},{"id":"task.qa.multi","label":"多跳问答","definition":"组合多个证据步骤才能回答"},{"id":"task.qa.domain","label":"领域问答","definition":"面向特定专业语料"}]},{"id":"task.generation","label":"知识密集型生成","definition":"依赖外部知识的文本生成","children":[{"id":"task.generation.fact","label":"事实性生成","definition":"减少生成内容的事实错误"},{"id":"task.generation.long","label":"长文本生成","definition":"生成有证据支持的长篇内容"}]}],"methods":[{"id":"method.retrieval","label":"检索方法","definition":"改进候选证据获取","children":[{"id":"method.retrieval.sparse","label":"稀疏检索","definition":"依赖词项匹配"},{"id":"method.retrieval.dense","label":"稠密检索","definition":"依赖向量语义相似度"},{"id":"method.retrieval.hybrid","label":"混合检索","definition":"组合稀疏与稠密检索"},{"id":"method.retrieval.rewrite","label":"查询改写","definition":"改写或扩展检索查询"},{"id":"method.retrieval.iterative","label":"迭代检索","definition":"根据中间结果多轮检索"},{"id":"method.retrieval.graph","label":"图结构检索","definition":"利用实体或关系图获取证据"}]},{"id":"method.fusion","label":"证据融合","definition":"组织或融合检索结果","children":[{"id":"method.fusion.decoder","label":"解码器融合","definition":"在解码器融合独立编码的文档"},{"id":"method.fusion.rerank","label":"重排","definition":"对候选证据再排序"},{"id":"method.fusion.compress","label":"证据压缩","definition":"压缩检索上下文"},{"id":"method.fusion.context","label":"上下文拼接","definition":"在输入中组合证据"}]},{"id":"method.control","label":"检索与生成控制","definition":"控制检索时机或生成过程","children":[{"id":"method.control.adaptive","label":"自适应检索","definition":"根据状态决定是否检索"},{"id":"method.control.reflect","label":"自反思","definition":"通过反思信号评估生成"},{"id":"method.control.verify","label":"生成后核验","definition":"生成后检查证据支持"},{"id":"method.control.citation","label":"引用约束","definition":"要求生成内容绑定引用"}]},{"id":"method.training","label":"训练策略","definition":"改变检索器或生成器训练","children":[{"id":"method.training.joint","label":"联合训练","definition":"检索器和生成器联合优化"},{"id":"method.training.instruction","label":"指令微调","definition":"通过指令数据训练"},{"id":"method.training.distill","label":"知识蒸馏","definition":"使用教师信号训练"}]}]}
+{
+  "version": "cs-2.0",
+  "domain": "计算机学科：AI、算法与系统",
+  "tasks": [
+    {
+      "id": "task.qa",
+      "label": "问答",
+      "definition": "针对问题生成基于证据的答案",
+      "children": [
+        {
+          "id": "task.qa.open",
+          "label": "开放域问答",
+          "definition": "从开放知识集合回答问题"
+        },
+        {
+          "id": "task.qa.multi",
+          "label": "多跳问答",
+          "definition": "组合多个证据步骤才能回答"
+        },
+        {
+          "id": "task.qa.domain",
+          "label": "领域问答",
+          "definition": "面向特定专业语料"
+        }
+      ]
+    },
+    {
+      "id": "task.generation",
+      "label": "知识密集型生成",
+      "definition": "依赖外部知识的文本生成",
+      "children": [
+        {
+          "id": "task.generation.fact",
+          "label": "事实性生成",
+          "definition": "减少生成内容的事实错误"
+        },
+        {
+          "id": "task.generation.long",
+          "label": "长文本生成",
+          "definition": "生成有证据支持的长篇内容"
+        }
+      ]
+    },
+    {
+      "id": "task.ml",
+      "label": "机器学习任务",
+      "definition": "从数据学习预测规则或概率分布，不用于单纯描述网络组件",
+      "children": [
+        {
+          "id": "task.ml.classification",
+          "label": "分类",
+          "definition": "把输入映射到离散类别"
+        },
+        {
+          "id": "task.ml.regression",
+          "label": "回归",
+          "definition": "预测连续值"
+        },
+        {
+          "id": "task.ml.generative",
+          "label": "生成建模",
+          "definition": "学习数据分布并生成样本"
+        },
+        {
+          "id": "task.ml.representation",
+          "label": "表示学习",
+          "definition": "学习可迁移的特征或嵌入"
+        }
+      ]
+    },
+    {
+      "id": "task.language",
+      "label": "语言任务",
+      "definition": "处理语言序列的明确任务",
+      "children": [
+        {
+          "id": "task.language.translation",
+          "label": "机器翻译",
+          "definition": "把一种语言翻译为另一种语言"
+        },
+        {
+          "id": "task.language.modeling",
+          "label": "语言建模",
+          "definition": "建模词元序列概率或预测下一个词元"
+        }
+      ]
+    },
+    {
+      "id": "task.theory",
+      "label": "理论分析任务",
+      "definition": "本文明确给出形式化分析，不能仅凭包含公式选择",
+      "children": [
+        {
+          "id": "task.theory.convergence",
+          "label": "收敛分析",
+          "definition": "证明迭代算法在给定前提下收敛"
+        },
+        {
+          "id": "task.theory.complexity",
+          "label": "复杂度分析",
+          "definition": "证明时间空间开销或问题的复杂性"
+        },
+        {
+          "id": "task.theory.generalization",
+          "label": "泛化分析",
+          "definition": "推导训练与未见数据表现的界或保证"
+        },
+        {
+          "id": "task.theory.correctness",
+          "label": "正确性证明",
+          "definition": "证明算法或系统满足指定性质"
+        }
+      ]
+    },
+    {
+      "id": "task.system",
+      "label": "计算机系统任务",
+      "definition": "改善计算系统的可衡量行为",
+      "children": [
+        {
+          "id": "task.system.distributed",
+          "label": "分布式计算",
+          "definition": "协调多个节点执行计算或达成一致"
+        },
+        {
+          "id": "task.system.storage",
+          "label": "存储与查询",
+          "definition": "组织存储或执行数据查询"
+        },
+        {
+          "id": "task.system.security",
+          "label": "安全与隐私",
+          "definition": "检测攻击或提供明确安全隐私保证"
+        }
+      ]
+    }
+  ],
+  "methods": [
+    {
+      "id": "method.retrieval",
+      "label": "检索方法",
+      "definition": "改进候选证据获取",
+      "children": [
+        {
+          "id": "method.retrieval.sparse",
+          "label": "稀疏检索",
+          "definition": "依赖词项匹配"
+        },
+        {
+          "id": "method.retrieval.dense",
+          "label": "稠密检索",
+          "definition": "依赖向量语义相似度"
+        },
+        {
+          "id": "method.retrieval.hybrid",
+          "label": "混合检索",
+          "definition": "组合稀疏与稠密检索"
+        },
+        {
+          "id": "method.retrieval.rewrite",
+          "label": "查询改写",
+          "definition": "改写或扩展检索查询"
+        },
+        {
+          "id": "method.retrieval.iterative",
+          "label": "迭代检索",
+          "definition": "根据中间结果多轮检索"
+        },
+        {
+          "id": "method.retrieval.graph",
+          "label": "图结构检索",
+          "definition": "利用实体或关系图获取证据"
+        }
+      ]
+    },
+    {
+      "id": "method.fusion",
+      "label": "证据融合",
+      "definition": "组织或融合检索结果",
+      "children": [
+        {
+          "id": "method.fusion.decoder",
+          "label": "解码器融合",
+          "definition": "在解码器融合独立编码的文档"
+        },
+        {
+          "id": "method.fusion.rerank",
+          "label": "重排",
+          "definition": "对候选证据再排序"
+        },
+        {
+          "id": "method.fusion.compress",
+          "label": "证据压缩",
+          "definition": "压缩检索上下文"
+        },
+        {
+          "id": "method.fusion.context",
+          "label": "上下文拼接",
+          "definition": "在输入中组合证据"
+        }
+      ]
+    },
+    {
+      "id": "method.control",
+      "label": "检索与生成控制",
+      "definition": "控制检索时机或生成过程",
+      "children": [
+        {
+          "id": "method.control.adaptive",
+          "label": "自适应检索",
+          "definition": "根据状态决定是否检索"
+        },
+        {
+          "id": "method.control.reflect",
+          "label": "自反思",
+          "definition": "通过反思信号评估生成"
+        },
+        {
+          "id": "method.control.verify",
+          "label": "生成后核验",
+          "definition": "生成后检查证据支持"
+        },
+        {
+          "id": "method.control.citation",
+          "label": "引用约束",
+          "definition": "要求生成内容绑定引用"
+        }
+      ]
+    },
+    {
+      "id": "method.training",
+      "label": "训练策略",
+      "definition": "改变检索器或生成器训练",
+      "children": [
+        {
+          "id": "method.training.joint",
+          "label": "联合训练",
+          "definition": "检索器和生成器联合优化"
+        },
+        {
+          "id": "method.training.instruction",
+          "label": "指令微调",
+          "definition": "通过指令数据训练"
+        },
+        {
+          "id": "method.training.distill",
+          "label": "知识蒸馏",
+          "definition": "使用教师信号训练"
+        }
+      ]
+    },
+    {
+      "id": "method.architecture",
+      "label": "模型架构",
+      "definition": "本文提出或使用的核心网络结构，相关工作提及不算",
+      "children": [
+        {
+          "id": "method.architecture.attention",
+          "label": "注意力机制",
+          "definition": "根据输入相关性加权聚合表示"
+        },
+        {
+          "id": "method.architecture.transformer",
+          "label": "Transformer",
+          "definition": "以注意力与前馈层等构成核心序列模型"
+        },
+        {
+          "id": "method.architecture.convolution",
+          "label": "卷积网络",
+          "definition": "以共享局部卷积核提取特征"
+        },
+        {
+          "id": "method.architecture.graph",
+          "label": "图神经网络",
+          "definition": "在图结构上聚合节点或边的表示"
+        }
+      ]
+    },
+    {
+      "id": "method.generative",
+      "label": "生成方法",
+      "definition": "估计或采样数据分布的核心方法",
+      "children": [
+        {
+          "id": "method.generative.adversarial",
+          "label": "对抗生成",
+          "definition": "通过生成器与判别器的对抗目标学习分布"
+        },
+        {
+          "id": "method.generative.variational",
+          "label": "变分生成",
+          "definition": "以变分推断或证据下界训练潜变量生成模型"
+        },
+        {
+          "id": "method.generative.diffusion",
+          "label": "扩散生成",
+          "definition": "学习反转逐步加噪过程以生成数据"
+        },
+        {
+          "id": "method.generative.autoregressive",
+          "label": "自回归生成",
+          "definition": "按条件概率逐步生成序列或变量"
+        }
+      ]
+    },
+    {
+      "id": "method.optimization",
+      "label": "优化方法",
+      "definition": "核心贡献涉及优化策略或其理论；常规训练细节不强行打标",
+      "children": [
+        {
+          "id": "method.optimization.stochastic",
+          "label": "随机梯度优化",
+          "definition": "以样本估计梯度完成迭代优化"
+        },
+        {
+          "id": "method.optimization.convex",
+          "label": "凸优化",
+          "definition": "利用凸性及相应算法求解优化问题"
+        },
+        {
+          "id": "method.optimization.minimax",
+          "label": "极小极大优化",
+          "definition": "优化相互竞争的最小化与最大化目标"
+        }
+      ]
+    },
+    {
+      "id": "method.algorithm",
+      "label": "算法设计",
+      "definition": "本文核心算法设计策略",
+      "children": [
+        {
+          "id": "method.algorithm.dynamic",
+          "label": "动态规划",
+          "definition": "通过子问题状态与递推关系求解"
+        },
+        {
+          "id": "method.algorithm.randomized",
+          "label": "随机算法",
+          "definition": "算法决策引入随机性并分析行为"
+        },
+        {
+          "id": "method.algorithm.approximation",
+          "label": "近似算法",
+          "definition": "提供近似解并分析近似保证"
+        },
+        {
+          "id": "method.algorithm.graph",
+          "label": "图算法",
+          "definition": "针对图上的连通路径匹配等问题设计算法"
+        }
+      ]
+    },
+    {
+      "id": "method.formal",
+      "label": "形式化方法",
+      "definition": "以明确形式模型推导或检查性质",
+      "children": [
+        {
+          "id": "method.formal.proof",
+          "label": "数学证明",
+          "definition": "核心贡献通过形式陈述和数学推导建立性质"
+        },
+        {
+          "id": "method.formal.modelchecking",
+          "label": "模型检查",
+          "definition": "搜索形式模型的状态空间以检查规范"
+        },
+        {
+          "id": "method.formal.verification",
+          "label": "程序验证",
+          "definition": "通过程序逻辑或证明义务验证程序性质"
+        }
+      ]
+    }
+  ]
+}

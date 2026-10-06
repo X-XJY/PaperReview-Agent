@@ -16,6 +16,13 @@ export type Claim = {
 };
 export type Field = "methods" | "advantages" | "limitations" | "future_work";
 export type Paper = {
+  theory?: {
+    status: 'ready' | 'pending';
+    nodes: { id: string; kind: string; label: string; statement: string; conditions: string[]; evidence_ids: string[] }[];
+    edges: { source: string; target: string; explanation: string; evidence_ids: string[] }[];
+    learning_paths: Record<string, string[]>;
+    warnings: string[];
+  } | null;
   id: string;
   filename: string;
   revision: number;

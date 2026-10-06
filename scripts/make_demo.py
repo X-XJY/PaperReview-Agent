@@ -17,5 +17,23 @@ for slug,title,year,method,tags,method_quote,limit_quote,adv_quote,method_cn,lim
         return {'id':pid+'-'+suffix,'text':text,'evidence_ids':[pid+'-e'+str(e)],'kind':kind,'status':status,'reason':'示例核验状态，仅用于演示交互。'}
     papers.append({'id':pid,'filename':slug+'-example.pdf','metadata':{'title':title,'authors':['Synthetic Research Team'],'year':year,'venue':'原创教学样例 · 非真实论文','task':'知识密集型问答','evidence_ids':[pid+'-e1']},'extraction':{'method_name':method,'methods':[claim('method',method_cn,2)],'advantages':[claim('adv',{'atlas':'对检索段落进行人工证据集对照评估。','fusion':'在固定检索预算下提高证据覆盖。','loop':'在限定的双跳问题场景增加证据覆盖。','reflect':'跳过不必要的检索，减少检索调用。','verify':'将不受支持的陈述标记给人工审核。'}[slug],4)],'limitations':[claim('limit',limit_cn,3)],'future_work':[claim('future','探索自适应段落选择。',3)] if slug=='fusion' else [],'evaluations':[]},'classification':{'task_ids':['task.qa.open'],'method_ids':tags,'rationale':'教学用预置分类，非模型分析。','evidence_ids':[pid+'-e2']},'evidence':ev,'revision':1,'warnings':[]})
 result={'mode':'demo','papers':papers,'failures':[],'synthesis':{'summary':[{'id':'summary-1','text':'这组教学样例依次展示了稠密检索、多文档融合、迭代检索、反思控制和引用核验。时间顺序不自动构成继承关系。','evidence_ids':[p['id']+'-e2' for p in papers],'kind':'inference','status':'supported','reason':'教学示例。'}],'relations':[{'source':'demo-atlas','target':'demo-fusion','type':'improves','scope':'独立编码段落并在解码阶段融合','evidence_ids':['demo-fusion-e2'],'status':'supported'},{'source':'demo-loop','target':'demo-reflect','type':'improves','scope':'在迭代检索前增加反思决策','evidence_ids':['demo-reflect-e2'],'status':'supported'}],'directions':[{'id':'direction-1','title':'让检索预算随证据需求变化','problem':'多文档融合的内存开销与额外检索调用需要控制。','hypothesis':'依据证据覆盖动态选择段落和检索轮数，可能在相近回答质量下减少开销。','reasoning':'Fusion-R 指出段落数量带来的内存问题；Reflect-R 展示检索调用可以按需跳过。这只构成实验动机。','experiment':'固定生成模型与数据划分，对比固定段落数和自适应策略；记录答案质量、证据覆盖、内存和检索调用次数。','failure_condition':'若覆盖率显著下降或控制器自身成本抵消节省，则假设不成立。','evidence_ids':['demo-fusion-e3','demo-reflect-e4'],'status':'supported','reason':'示例中前提有依据；假设尚未验证。'},{'id':'direction-2','title':'检索链错误的早期识别','problem':'中间答案错误可能污染后续检索，反思判断也可能受领域变化影响。','hypothesis':'在新一轮检索前增加原文支持检查，可能降低错误传播。','reasoning':'将 Loop-R 的错误传播风险与 Verify-R 的支持核验思路组合，尚需验证域外表现。','experiment':'构造正确与错误中间答案两组，测量错误检索率、最终正确率与额外时延，并加入域外测试。','failure_condition':'检查器无法识别错误，或引入过多误拒绝。','evidence_ids':['demo-loop-e3','demo-verify-e2','demo-reflect-e3'],'status':'partial','reason':'组合策略的可行性仍需实验。'}],'common_gaps':[{'method':'双编码器检索 / 反思控制','limitation':'域外适用性仍需验证','idea':'设置领域迁移测试，并单独评价检索器与控制器。','evidence_ids':['demo-atlas-e3','demo-reflect-e3']}]}}
+# Original mathematical teaching example, explicitly separate from real papers.
+paper=papers[0]
+pid=paper['id']
+theory_texts=[
+    ('definition','Definition 1 · 证据召回率','设相关证据集合 R 非空，检索集合为 S，定义召回率为 |R ∩ S| / |R|。',[], 'Definition 1. For a nonempty set R of relevant evidence and a retrieved set S, recall is |R intersection S| / |R|.'),
+    ('lemma','Lemma 1 · 交集单调性','若 S ⊆ T，则 R ∩ S ⊆ R ∩ T。',['S ⊆ T'],'Lemma 1. If S is a subset of T, then R intersection S is a subset of R intersection T. Proof: any element in R intersection S belongs to R and S, hence to R and T.'),
+    ('theorem','Theorem 1 · 召回率单调性','在相关证据集合固定且非空、S ⊆ T 时，扩大检索集合不会降低该定义下的召回率。',['R 固定且非空','S ⊆ T'],'Theorem 1. For fixed nonempty R and S subset T, recall(S) <= recall(T). Proof: Lemma 1 gives |R intersection S| <= |R intersection T|. Divide by the positive |R| and apply Definition 1. This says nothing about precision or answer accuracy.'),
+]
+nodes=[]
+for i,(kind,label,statement,conditions,text) in enumerate(theory_texts):
+    ref=pid+'-theory-e'+str(i)
+    paper['evidence'].append({'id':ref,'paper_id':pid,'text':text,'page':5,'section':'原创数学教学样例 · 非真实论文'})
+    nodes.append({'id':pid+'-theory-'+str(i),'kind':kind,'label':label,'statement':statement,'conditions':conditions,'evidence_ids':[ref]})
+paper['theory']={'status':'ready','nodes':nodes,'edges':[
+    {'source':nodes[i]['id'],'target':nodes[2]['id'],'explanation':'原创教学证明显式使用'+nodes[i]['label'],'evidence_ids':nodes[2]['evidence_ids']} for i in [0,1]
+], 'learning_paths':{nodes[0]['id']:[nodes[0]['id']],nodes[1]['id']:[nodes[1]['id']],nodes[2]['id']:[n['id'] for n in nodes]},'warnings':[]}
+for paper in papers[1:]:
+    paper['theory']={'status':'ready','nodes':[],'edges':[],'learning_paths':{},'warnings':[]}
 Path('public').mkdir(exist_ok=True)
 Path('public/demo.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')

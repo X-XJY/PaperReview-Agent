@@ -21,6 +21,18 @@ def report(job):
         lines += ['', '### 数据集与评价指标']
         lines += ['- '+escape(e['dataset'])+' / '+escape(e['metric'])+' / '+escape(e['value'])+'；条件：'+escape(e['setting'])+' '+cites(e['evidence_ids']) for e in p['extraction']['evaluations']]
         lines += ['- 告警：'+w for w in p['warnings']]
+        theory = p.get('theory')
+        if theory:
+            lines += ['', '### 理论结果与证明依赖']
+            if theory.get('status') == 'pending':
+                lines.append('人工修改尚未核验，依赖图和学习路径暂不可用。')
+            labels = {n['id']: n['label'] for n in theory['nodes']}
+            for n in theory['nodes']:
+                lines += ['', '#### '+n['label'], n['statement'], '前提：'+'；'.join(n['conditions']), cites(n['evidence_ids'])]
+            lines += ['- '+labels[e['source']]+' → '+labels[e['target']]+'：'+e['explanation']+' '+cites(e['evidence_ids']) for e in theory['edges']]
+            lines += ['', '### 学习路径']
+            lines += ['- '+labels[target]+'：'+' → '.join(labels[key] for key in path) for target,path in theory['learning_paths'].items()]
+            lines += ['- '+w for w in theory['warnings']]
     synthesis = result.get('synthesis')
     if synthesis:
         lines += ['', '## 技术演进总结']
