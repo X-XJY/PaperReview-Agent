@@ -139,5 +139,9 @@ for paper in papers:
     paper['theory']['edges'] = edges
     paper['theory']['learning_paths'] = learning_paths(
         [TheoryNode.model_validate(n) for n in nodes], [TheoryEdge.model_validate(e) for e in edges])
+# A rendered teaching PDF places each evidence block on its own numbered page.
+for paper in papers:
+    for number, evidence in enumerate(paper['evidence'], 1):
+        evidence['page'] = number
 Path('public').mkdir(exist_ok=True)
 Path('public/demo.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')

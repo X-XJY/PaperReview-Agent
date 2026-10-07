@@ -17,3 +17,5 @@ __pycache__/
 *.tsbuildinfo
 .openai/
 artifacts/
+
+tmp/

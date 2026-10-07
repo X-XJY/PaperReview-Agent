@@ -110,14 +110,14 @@
           "id": "demo-atlas-theory-e1",
           "paper_id": "demo-atlas",
           "text": "Lemma 1. If S is a subset of T, then R intersection S is a subset of R intersection T. Proof: any element in R intersection S belongs to R and S, hence to R and T.",
-          "page": 5,
+          "page": 6,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-atlas-theory-e2",
           "paper_id": "demo-atlas",
           "text": "Theorem 1. For fixed nonempty R and S subset T, recall(S) <= recall(T). Proof: Lemma 1 gives |R intersection S| <= |R intersection T|. Divide by the positive |R| and apply Definition 1. This says nothing about precision or answer accuracy.",
-          "page": 5,
+          "page": 7,
           "section": "原创数学教学样例 · 非真实论文"
         }
       ],
@@ -316,28 +316,28 @@
           "id": "demo-fusion-theory-e1",
           "paper_id": "demo-fusion",
           "text": "Lemma 1. For nonnegative weights and vectors in the same normed vector space, norm(sum_i w_i(h_i-h*)) <= sum_i w_i norm(h_i-h*). Proof: apply the triangle inequality and positive homogeneity of the norm.",
-          "page": 5,
+          "page": 6,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-fusion-theory-e2",
           "paper_id": "demo-fusion",
           "text": "Theorem 1. Under Definition 1, if Assumption 1 holds, then norm(h-h*) <= epsilon. Proof: Definition 1 gives h-h* = sum_i w_i(h_i-h*). Lemma 1 bounds its norm by sum_i w_i epsilon = epsilon, using Assumption 1. This does not guarantee factual accuracy or apply to arbitrary nonlinear decoders.",
-          "page": 5,
+          "page": 7,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-fusion-theory-e3",
           "paper_id": "demo-fusion",
           "text": "Assumption 1. Every input representation satisfies norm(h_i-h*) <= epsilon, with epsilon >= 0. This is an assumption, not a measured empirical guarantee.",
-          "page": 5,
+          "page": 8,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-fusion-theory-e4",
           "paper_id": "demo-fusion",
           "text": "Corollary 1. If all h_i equal h*, the fused representation equals h*. Proof: apply Theorem 1 with epsilon = 0. A vector at norm distance zero equals h*. This concerns the teaching vector model only.",
-          "page": 5,
+          "page": 9,
           "section": "原创数学教学样例 · 非真实论文"
         }
       ],
@@ -580,21 +580,21 @@
           "id": "demo-loop-theory-e1",
           "paper_id": "demo-loop",
           "text": "Lemma 1. Under Definition 1, every strict update increases |S_t| by at least one and keeps S_t inside the fixed finite U. Proof: Definition 1 uses union with R_t subset U; a strict update adds at least one previously absent element.",
-          "page": 5,
+          "page": 6,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-loop-theory-e2",
           "paper_id": "demo-loop",
           "text": "Theorem 1. In the finite cumulative model of Lemma 1, at most |U|-|S_0| strict updates can occur. Proof: Lemma 1 gives |S_k| >= |S_0|+k and S_k subset U, so k <= |U|-|S_0|. Repeated non-expanding retrieval is outside this bound.",
-          "page": 5,
+          "page": 7,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-loop-theory-e3",
           "paper_id": "demo-loop",
           "text": "Corollary 1. If each retrieval terminates and the loop stops on its first non-expanding retrieval, at most |U|-|S_0|+1 retrievals execute. Proof: Theorem 1 bounds strict updates by |U|-|S_0|; the stopping rule permits at most one final non-expanding retrieval.",
-          "page": 5,
+          "page": 8,
           "section": "原创数学教学样例 · 非真实论文"
         }
       ],
@@ -814,28 +814,28 @@
           "id": "demo-reflect-theory-e1",
           "paper_id": "demo-reflect",
           "text": "Lemma 1. Under Definition 1, B-C = sum_(i not in A) c_i-H. Proof: Definition 1 specifies B and C; partition the finite candidate set into A and its complement and subtract.",
-          "page": 5,
+          "page": 6,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-reflect-theory-e2",
           "paper_id": "demo-reflect",
           "text": "Theorem 1. C <= B if and only if sum_(i not in A) c_i >= H. Proof: Lemma 1 gives B-C = sum_(i not in A) c_i-H; C <= B is equivalent to its nonnegativity. No answer-quality guarantee follows.",
-          "page": 5,
+          "page": 7,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-reflect-theory-e3",
           "paper_id": "demo-reflect",
           "text": "Proposition 1. If A is the entire candidate set, C = B+H. Proof: in Lemma 1 the complement is empty, so B-C = -H. This branch does not require Theorem 1.",
-          "page": 5,
+          "page": 8,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-reflect-theory-e4",
           "paper_id": "demo-reflect",
           "text": "Corollary 1. With uniform step cost c > 0 and k omitted steps, C <= B if and only if kc >= H. Proof: substitute sum_(i not in A) c_i = kc into Theorem 1.",
-          "page": 5,
+          "page": 9,
           "section": "原创数学教学样例 · 非真实论文"
         }
       ],
@@ -1079,35 +1079,35 @@
           "id": "demo-verify-theory-e1",
           "paper_id": "demo-verify",
           "text": "Lemma 1. Under Definition 1, if tau_1 <= tau_2 then A_(tau_2) subset A_(tau_1). Proof: Definition 1 admits q exactly when s(q) reaches the threshold; s(q) >= tau_2 implies s(q) >= tau_1.",
-          "page": 5,
+          "page": 6,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-verify-theory-e2",
           "paper_id": "demo-verify",
           "text": "Theorem 1. Under Definition 1 and tau_1 <= tau_2, |A_(tau_2)| <= |A_(tau_1)|. Proof: Lemma 1 and Definition 1 give A_(tau_2) subset A_(tau_1); finite set cardinality preserves inclusion. This proves only count monotonicity, not better factual correctness or score calibration.",
-          "page": 5,
+          "page": 7,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-verify-theory-e3",
           "paper_id": "demo-verify",
           "text": "Lemma 2. Under Definition 1 and tau_1 <= tau_2, A_(tau_1) minus A_(tau_2) = {q in Q: tau_1 <= s(q) < tau_2}. Proof: Definition 1 translates membership and nonmembership into the two score inequalities.",
-          "page": 5,
+          "page": 8,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-verify-theory-e4",
           "paper_id": "demo-verify",
           "text": "Corollary 1. |A_(tau_1)|-|A_(tau_2)| equals the number of q with tau_1 <= s(q) < tau_2. Proof: Lemma 1 gives nested finite sets, so their cardinality difference equals the set-difference cardinality. Lemma 2 identifies that difference with the score interval.",
-          "page": 5,
+          "page": 9,
           "section": "原创数学教学样例 · 非真实论文"
         },
         {
           "id": "demo-verify-theory-e5",
           "paper_id": "demo-verify",
           "text": "Corollary 2. If no statement score lies in [tau_1,tau_2), the two thresholds accept the same number of statements. Proof: Corollary 1 gives a cardinality difference of zero. No factual-truth claim is implied.",
-          "page": 5,
+          "page": 10,
           "section": "原创数学教学样例 · 非真实论文"
         }
       ],

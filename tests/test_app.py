@@ -184,3 +184,22 @@ def test_learning_persistence_invalidation_and_delete(client):
     assert client.delete('/api/jobs/'+job['id'],headers=HEADERS).status_code==200
     with db.connection() as conn:
         assert conn.execute('SELECT COUNT(*) FROM learning_progress WHERE job=?',(job['id'],)).fetchone()[0]==0
+
+
+def test_teaching_pdf_matches_evidence_pages(client):
+    from pypdf import PdfReader
+    job=demo(client)
+    for paper in job['result']['papers']:
+        url=f"/api/jobs/{job['id']}/papers/{paper['id']}/pdf"
+        response=client.get(url)
+        assert response.status_code==200
+        reader=PdfReader(io.BytesIO(response.content))
+        assert len(reader.pages)==len(paper['evidence'])
+        for evidence in paper['evidence']:
+            text=reader.pages[evidence['page']-1].extract_text()
+            normalize=lambda s: ''.join(s.split())
+            assert normalize(evidence['text']) in normalize(text)
+        with TestClient(app) as other:
+            other.get('/api/session')
+            assert other.get(url).status_code==404
+    assert client.get(f"/api/jobs/{job['id']}/papers/../../private/pdf").status_code==404

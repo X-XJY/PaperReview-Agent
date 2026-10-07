@@ -81,7 +81,10 @@ export default function PdfReader({
       if (generation === searchGeneration.current) setSearching(false);
     }
   }
-  const url = `/api/jobs/${jobId}/papers/${evidence.paper_id}/pdf`;
+  const url =
+    jobId === "local-demo"
+      ? `/demo-pdfs/${evidence.paper_id}.pdf`
+      : `/api/jobs/${jobId}/papers/${evidence.paper_id}/pdf`;
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;

@@ -1214,12 +1214,12 @@ export default function App() {
                   <blockquote><EvidenceText text={e.text}/></blockquote>
                   <code>{e.id}</code>
                   <button className="evidence-link" onClick={()=>{setEvidenceIds(null);askTutor({paperIds:[e.paper_id],evidenceIds:[e.id],question:'请讲解这段原文的含义和适用条件。'});}}>请助教讲解这段原文</button>
-                  {result?.mode === "live" && (
+                  {(result?.mode === "live" || result?.mode === "demo") && (
                     <>
                     <button className="evidence-link" onClick={()=>setPdfEvidence(e)}>定位并高亮原 PDF</button>
                     <a
                       className="evidence-link"
-                      href={`/api/jobs/${job?.id}/papers/${e.paper_id}/pdf#page=${e.page || 1}`}
+                      href={job?.id==='local-demo'?`/demo-pdfs/${e.paper_id}.pdf#page=${e.page||1}`:`/api/jobs/${job?.id}/papers/${e.paper_id}/pdf#page=${e.page || 1}`}
                       target="_blank"
                       rel="noreferrer"
                     >

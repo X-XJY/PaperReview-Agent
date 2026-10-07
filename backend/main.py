@@ -312,8 +312,14 @@ def export_report(job_id: str, request: Request):
 def pdf(job_id: str, paper_id: str, request: Request):
     job = owned(job_id,request)
     file = next((f for f in job['payload']['files'] if f['hash']==paper_id),None)
+    if not file and (job.get('result') or {}).get('mode')=='demo':
+        catalog=json.loads(Path('public/demo.json').read_text(encoding='utf-8'))
+        if any(p['id']==paper_id for p in catalog['papers']) and any(p['id']==paper_id for p in job['result']['papers']):
+            path=Path('public/demo-pdfs')/(paper_id+'.pdf')
+            if path.is_file():
+                return FileResponse(path,media_type='application/pdf',filename=paper_id+'.pdf',content_disposition_type='inline')
     if not file:
-        raise HTTPException(404,'示例未附带真实 PDF。')
+        raise HTTPException(404,'未找到原 PDF。')
     return FileResponse(file['path'],media_type='application/pdf',filename='paper.pdf',content_disposition_type='inline')
 
 @app.get('/api/jobs/{job_id}/papers/{paper_id}/learning')
