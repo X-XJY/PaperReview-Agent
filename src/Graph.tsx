@@ -82,6 +82,7 @@ export default function Graph({
         {
           type: "graph",
           layout: layered && positions ? "none" : "force",
+          ...(allowLayeredLayout ? { top: 44, bottom: 72, left: 72, right: 72, preserveAspect: true } : {}),
           roam: true,
           scaleLimit: { min: 0.3, max: 3 },
           draggable: true,
@@ -90,6 +91,7 @@ export default function Graph({
           force: { repulsion: 600, edgeLength: 180, gravity: 0.08 },
           label: {
             show: true,
+            ...(allowLayeredLayout ? { width: 130, overflow: "break" } : {}),
             position: "bottom",
             color: "#263c51",
             fontSize: 14,

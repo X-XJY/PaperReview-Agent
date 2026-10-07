@@ -29,6 +29,25 @@ def test_demo_contract_and_export(client):
     assert len(job['result']['papers'])==5
     for paper in job['result']['papers']:
         Paper.model_validate(paper)
+        theory=paper['theory']
+        assert len(theory['nodes']) >= 3, paper['id']
+        assert theory['edges'], paper['id']
+        evidence={e['id']:e for e in paper['evidence']}
+        ids={n['id'] for n in theory['nodes']}
+        for node in theory['nodes']:
+            assert node['evidence_ids']
+            for ref in node['evidence_ids']:
+                assert evidence[ref]['paper_id']==paper['id']
+                assert '非真实论文' in evidence[ref]['section']
+        for edge in theory['edges']:
+            assert edge['source'] in ids and edge['target'] in ids
+            assert all(ref in evidence for ref in edge['evidence_ids'])
+        for target,path in theory['learning_paths'].items():
+            assert path[-1]==target
+            assert set(path)<=ids
+            for edge in theory['edges']:
+                if edge['target'] in path:
+                    assert path.index(edge['source']) < path.index(edge['target'])
     Synthesis.model_validate(job['result']['synthesis'])
     report=client.get('/api/jobs/'+job['id']+'/report')
     assert '非真实论文事实' in report.text

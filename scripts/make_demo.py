@@ -33,7 +33,39 @@ for i,(kind,label,statement,conditions,text) in enumerate(theory_texts):
 paper['theory']={'status':'ready','nodes':nodes,'edges':[
     {'source':nodes[i]['id'],'target':nodes[2]['id'],'explanation':'原创教学证明显式使用'+nodes[i]['label'],'evidence_ids':nodes[2]['evidence_ids']} for i in [0,1]
 ], 'learning_paths':{nodes[0]['id']:[nodes[0]['id']],nodes[1]['id']:[nodes[1]['id']],nodes[2]['id']:[n['id'] for n in nodes]},'warnings':[]}
+# Each fictional document includes its own explicitly authored teaching proof.
+# These simplified models do not assert properties of real neural architectures.
+additional_theory = {
+    'demo-fusion': [
+        ('definition', 'Definition 1 · 加权表示融合', '在同一赋范向量空间中，定义融合表示 h = Σ wᵢhᵢ，其中 wᵢ ≥ 0 且 Σ wᵢ = 1。', ['有限个表示向量', '非负归一化权重'], 'Definition 1. In one normed vector space, a teaching fusion model is h = sum_i w_i h_i, for finitely many nonnegative weights with sum_i w_i = 1. This simplified model is not a description of a real decoder.'),
+        ('lemma', 'Lemma 1 · 加权误差上界', '对非负权重，有 ‖Σ wᵢ(hᵢ − h*)‖ ≤ Σ wᵢ‖hᵢ − h*‖。', ['所有向量属于同一赋范向量空间', 'wᵢ ≥ 0'], 'Lemma 1. For nonnegative weights and vectors in the same normed vector space, norm(sum_i w_i(h_i-h*)) <= sum_i w_i norm(h_i-h*). Proof: apply the triangle inequality and positive homogeneity of the norm.'),
+        ('theorem', 'Theorem 1 · 融合表示误差界', '若每个表示与目标 h* 的距离至多为 ε，则该加权融合表示与 h* 的距离也至多为 ε。', ['采用 Definition 1 的融合模型', '每个 ‖hᵢ − h*‖ ≤ ε，且 ε ≥ 0'], 'Theorem 1. Under Definition 1, if every norm(h_i-h*) <= epsilon with epsilon >= 0, then norm(h-h*) <= epsilon. Proof: Definition 1 gives h-h* = sum_i w_i(h_i-h*). Lemma 1 bounds its norm by sum_i w_i epsilon = epsilon. This does not guarantee factual accuracy or apply to arbitrary nonlinear decoders.'),
+    ],
+    'demo-loop': [
+        ('definition', 'Definition 1 · 累积证据集合', '定义第 t 轮累积证据 Sₜ，更新规则为 Sₜ₊₁ = Sₜ ∪ Rₜ，其中 Rₜ 为本轮检索结果。', ['证据来自固定有限集合 U', '不删除已经收集的证据'], 'Definition 1. Let U be a fixed finite evidence universe. Starting with S_0 subset U, the teaching retrieval loop updates S_(t+1) = S_t union R_t, where R_t subset U. Previously collected evidence is never removed.'),
+        ('lemma', 'Lemma 1 · 新增证据计数', '若 S ⊂ T ⊆ U，则 |T| ≥ |S| + 1。', ['U 有限', 'S 为 T 的真子集'], 'Lemma 1. If S is a strict subset of T and T subset U for finite U, then |T| >= |S| + 1. Proof: T contains all elements of S and at least one element outside S.'),
+        ('theorem', 'Theorem 1 · 有限证据扩展上界', '若每个继续执行的更新都至少增加一条新证据，则成功扩展次数最多为 |U| − |S₀|。', ['采用 Definition 1 的累积更新规则', '每次继续更新均满足 Sₜ ⊂ Sₜ₊₁'], 'Theorem 1. Under Definition 1, if every continuing update strictly enlarges S_t, there are at most |U|-|S_0| such updates. Proof: Definition 1 keeps all S_t inside U; Lemma 1 increases cardinality by at least one per update. Thus |S_0|+k <= |U|. No claim is made about answer correctness or loops that keep repeating the same evidence.'),
+    ],
+    'demo-reflect': [
+        ('definition', 'Definition 1 · 检索开销模型', '设候选检索步骤开销 cᵢ ≥ 0，固定策略执行所有步骤；反思策略仅执行集合 A 中的步骤，另支付控制器开销 H ≥ 0。', ['候选步骤有限', '两种策略使用相同的单步检索开销'], 'Definition 1. For finitely many candidate steps with fixed costs c_i >= 0, the baseline cost is B = sum_i c_i. A teaching reflection policy executes subset A and incurs controller overhead H >= 0, so C = H + sum_(i in A) c_i.'),
+        ('lemma', 'Lemma 1 · 省略步骤开销分解', '总检索开销等于已选步骤开销与省略步骤开销之和。', ['A 是候选步骤集合的子集'], 'Lemma 1. For a finite index set I and A subset I, sum_(i in I) c_i = sum_(i in A) c_i + sum_(i in I minus A) c_i. Proof: A and its complement partition I into disjoint sets.'),
+        ('theorem', 'Theorem 1 · 反思策略节省条件', '当且仅当省略步骤的检索开销之和不小于 H 时，反思策略的总开销不超过固定策略。', ['采用 Definition 1 的成本模型', '计入控制器开销 H'], 'Theorem 1. Under Definition 1, C <= B if and only if sum_(i not in A) c_i >= H. Proof: substituting Definition 1 and the decomposition in Lemma 1 yields B-C = sum_(i not in A) c_i-H. Its nonnegativity is exactly the stated condition. Cost savings alone do not imply preserved answer quality.'),
+    ],
+    'demo-verify': [
+        ('definition', 'Definition 1 · 支持分数阈值集', '对固定的有限陈述集合 Q，给定固定文本支持分数 s(q) ∈ [0,1]，定义通过集合 Aτ = {q ∈ Q : s(q) ≥ τ}。', ['Q 和各陈述分数固定', 'τ ∈ [0,1]'], 'Definition 1. For a fixed finite set Q of statements and fixed textual-support scores s(q) in [0,1], define A_tau = {q in Q: s(q) >= tau}, with tau in [0,1]. Scores measure the teaching checker output, not factual truth.'),
+        ('lemma', 'Lemma 1 · 阈值集合包含关系', '若 τ₁ ≤ τ₂，则通过较高阈值的陈述也通过较低阈值。', ['两次筛选使用相同分数'], 'Lemma 1. If tau_1 <= tau_2, every score at least tau_2 is also at least tau_1. Proof: s >= tau_2 >= tau_1 by transitivity of the order on real numbers.'),
+        ('theorem', 'Theorem 1 · 通过数量单调性', '在陈述和分数固定时，提高阈值不会增加通过的陈述数量，即 |Aτ₂| ≤ |Aτ₁|。', ['采用 Definition 1 的固定集合与分数', 'τ₁ ≤ τ₂'], 'Theorem 1. Under Definition 1 and tau_1 <= tau_2, |A_(tau_2)| <= |A_(tau_1)|. Proof: Lemma 1 and Definition 1 give A_(tau_2) subset A_(tau_1); finite set cardinality preserves inclusion. This proves only count monotonicity, not better factual correctness or score calibration.'),
+    ],
+}
 for paper in papers[1:]:
-    paper['theory']={'status':'ready','nodes':[],'edges':[],'learning_paths':{},'warnings':[]}
+    pid = paper['id']
+    nodes = []
+    for i, (kind, label, statement, conditions, text) in enumerate(additional_theory[pid]):
+        ref = f'{pid}-theory-e{i}'
+        paper['evidence'].append({'id': ref, 'paper_id': pid, 'text': text, 'page': 5, 'section': '原创数学教学样例 · 非真实论文'})
+        nodes.append({'id': f'{pid}-theory-{i}', 'kind': kind, 'label': label, 'statement': statement, 'conditions': conditions, 'evidence_ids': [ref]})
+    paper['theory'] = {'status': 'ready', 'nodes': nodes, 'edges': [
+        {'source': nodes[i]['id'], 'target': nodes[2]['id'], 'explanation': '原创教学证明显式使用' + nodes[i]['label'], 'evidence_ids': nodes[2]['evidence_ids']} for i in [0, 1]
+    ], 'learning_paths': {nodes[0]['id']: [nodes[0]['id']], nodes[1]['id']: [nodes[1]['id']], nodes[2]['id']: [n['id'] for n in nodes]}, 'warnings': []}
 Path('public').mkdir(exist_ok=True)
 Path('public/demo.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')

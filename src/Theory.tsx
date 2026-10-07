@@ -17,6 +17,7 @@ const kinds: Record<string, string> = {
 type Node = NonNullable<Paper["theory"]>["nodes"][number];
 export default function Theory({
   papers,
+  isDemo = false,
   onEvidence,
   jobId,
   editable,
@@ -24,6 +25,7 @@ export default function Theory({
   onTutor,
 }: {
   papers: Paper[];
+  isDemo?: boolean;
   onEvidence: (ids: string[]) => void;
   jobId: string;
   editable: boolean;
@@ -76,6 +78,7 @@ export default function Theory({
         从原文理论陈述构建证明依赖，箭头表示“前提 →
         使用该前提的结果”。选择学习目标可查看前置知识顺序。
       </div>
+      {isDemo && <p className="theory-demo-note">教学演示：以下定义、引理、定理及证明为原创数学样例，用于体验证据溯源和学习路径，不是真实论文成果，也不证明对应方法的实际效果。</p>}
       {papers.map((paper) => {
         const theory = paper.theory;
         const selected = theory?.nodes.find(
@@ -83,7 +86,7 @@ export default function Theory({
         );
         const path = selected ? theory?.learning_paths[selected.id] : undefined;
         return (
-          <section key={paper.id} className="theory-paper">
+          <section key={paper.id} className={`theory-paper${!theory?.nodes.length ? ' theory-paper-empty' : ''}`}>
             <h3>{paper.metadata.title}</h3>
             {theory?.status === "pending" && (
               <p role="status">
@@ -120,11 +123,20 @@ export default function Theory({
             {!theory ? (
               <p>此分析尚未包含理论结果，可点击重新推导补充分析。</p>
             ) : !theory.nodes.length ? (
-              <p>
-                {theory.status === "pending"
-                  ? "当前没有保留的理论节点。"
-                  : "未发现有原文支持的明确理论陈述。"}
-              </p>
+              <div className="theory-empty-content">
+                <p>{theory.status === "pending"
+                  ? "当前没有保留的理论节点，重新推导后会更新结果。"
+                  : isDemo
+                    ? "这是旧版教学样例，尚未配置理论演示。点击页面顶部的“打开教学示例”可加载完整示例。"
+                    : "本次分析未提取到可由原文支持的定义、假设、引理、定理或命题。"}</p>
+                {!isDemo && theory.status !== 'pending' && <>
+                  <p className="muted">这不代表论文没有研究价值，也不能据此断定原文没有理论结果。实验型论文可能侧重方法与评测；如果原文确有明确理论陈述，可查看依据并手动补充。</p>
+                  <div className="theory-empty-actions">
+                    <button onClick={() => onEvidence(paper.extraction.methods.flatMap(c => c.evidence_ids))} disabled={!paper.extraction.methods.some(c => c.evidence_ids.length)}>查看方法原文</button>
+                    <button onClick={() => onTutor({paperIds:[paper.id],evidenceIds:paper.extraction.methods.flatMap(c=>c.evidence_ids),question:'请依据这篇论文的原文，讲解核心方法、适用条件与作者明确写出的局限。区分方法说明和正式理论结果，不要将方法描述包装成定理或虚构证明。'})}>请助教讲解方法</button>
+                  </div>
+                </>}
+              </div>
             ) : (
               <>
                 <label>

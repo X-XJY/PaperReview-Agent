@@ -304,15 +304,105 @@
           "text": "At a fixed retrieval budget, independent passage encoding improves evidence coverage in our synthetic benchmark.",
           "page": 4,
           "section": "4 Evaluation"
+        },
+        {
+          "id": "demo-fusion-theory-e0",
+          "paper_id": "demo-fusion",
+          "text": "Definition 1. In one normed vector space, a teaching fusion model is h = sum_i w_i h_i, for finitely many nonnegative weights with sum_i w_i = 1. This simplified model is not a description of a real decoder.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-fusion-theory-e1",
+          "paper_id": "demo-fusion",
+          "text": "Lemma 1. For nonnegative weights and vectors in the same normed vector space, norm(sum_i w_i(h_i-h*)) <= sum_i w_i norm(h_i-h*). Proof: apply the triangle inequality and positive homogeneity of the norm.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-fusion-theory-e2",
+          "paper_id": "demo-fusion",
+          "text": "Theorem 1. Under Definition 1, if every norm(h_i-h*) <= epsilon with epsilon >= 0, then norm(h-h*) <= epsilon. Proof: Definition 1 gives h-h* = sum_i w_i(h_i-h*). Lemma 1 bounds its norm by sum_i w_i epsilon = epsilon. This does not guarantee factual accuracy or apply to arbitrary nonlinear decoders.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
         }
       ],
       "revision": 1,
       "warnings": [],
       "theory": {
         "status": "ready",
-        "nodes": [],
-        "edges": [],
-        "learning_paths": {},
+        "nodes": [
+          {
+            "id": "demo-fusion-theory-0",
+            "kind": "definition",
+            "label": "Definition 1 · 加权表示融合",
+            "statement": "在同一赋范向量空间中，定义融合表示 h = Σ wᵢhᵢ，其中 wᵢ ≥ 0 且 Σ wᵢ = 1。",
+            "conditions": [
+              "有限个表示向量",
+              "非负归一化权重"
+            ],
+            "evidence_ids": [
+              "demo-fusion-theory-e0"
+            ]
+          },
+          {
+            "id": "demo-fusion-theory-1",
+            "kind": "lemma",
+            "label": "Lemma 1 · 加权误差上界",
+            "statement": "对非负权重，有 ‖Σ wᵢ(hᵢ − h*)‖ ≤ Σ wᵢ‖hᵢ − h*‖。",
+            "conditions": [
+              "所有向量属于同一赋范向量空间",
+              "wᵢ ≥ 0"
+            ],
+            "evidence_ids": [
+              "demo-fusion-theory-e1"
+            ]
+          },
+          {
+            "id": "demo-fusion-theory-2",
+            "kind": "theorem",
+            "label": "Theorem 1 · 融合表示误差界",
+            "statement": "若每个表示与目标 h* 的距离至多为 ε，则该加权融合表示与 h* 的距离也至多为 ε。",
+            "conditions": [
+              "采用 Definition 1 的融合模型",
+              "每个 ‖hᵢ − h*‖ ≤ ε，且 ε ≥ 0"
+            ],
+            "evidence_ids": [
+              "demo-fusion-theory-e2"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "source": "demo-fusion-theory-0",
+            "target": "demo-fusion-theory-2",
+            "explanation": "原创教学证明显式使用Definition 1 · 加权表示融合",
+            "evidence_ids": [
+              "demo-fusion-theory-e2"
+            ]
+          },
+          {
+            "source": "demo-fusion-theory-1",
+            "target": "demo-fusion-theory-2",
+            "explanation": "原创教学证明显式使用Lemma 1 · 加权误差上界",
+            "evidence_ids": [
+              "demo-fusion-theory-e2"
+            ]
+          }
+        ],
+        "learning_paths": {
+          "demo-fusion-theory-0": [
+            "demo-fusion-theory-0"
+          ],
+          "demo-fusion-theory-1": [
+            "demo-fusion-theory-1"
+          ],
+          "demo-fusion-theory-2": [
+            "demo-fusion-theory-0",
+            "demo-fusion-theory-1",
+            "demo-fusion-theory-2"
+          ]
+        },
         "warnings": []
       }
     },
@@ -413,15 +503,105 @@
           "text": "Additional retrieval rounds increase evidence coverage on two-hop questions in this controlled setting.",
           "page": 4,
           "section": "4 Evaluation"
+        },
+        {
+          "id": "demo-loop-theory-e0",
+          "paper_id": "demo-loop",
+          "text": "Definition 1. Let U be a fixed finite evidence universe. Starting with S_0 subset U, the teaching retrieval loop updates S_(t+1) = S_t union R_t, where R_t subset U. Previously collected evidence is never removed.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-loop-theory-e1",
+          "paper_id": "demo-loop",
+          "text": "Lemma 1. If S is a strict subset of T and T subset U for finite U, then |T| >= |S| + 1. Proof: T contains all elements of S and at least one element outside S.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-loop-theory-e2",
+          "paper_id": "demo-loop",
+          "text": "Theorem 1. Under Definition 1, if every continuing update strictly enlarges S_t, there are at most |U|-|S_0| such updates. Proof: Definition 1 keeps all S_t inside U; Lemma 1 increases cardinality by at least one per update. Thus |S_0|+k <= |U|. No claim is made about answer correctness or loops that keep repeating the same evidence.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
         }
       ],
       "revision": 1,
       "warnings": [],
       "theory": {
         "status": "ready",
-        "nodes": [],
-        "edges": [],
-        "learning_paths": {},
+        "nodes": [
+          {
+            "id": "demo-loop-theory-0",
+            "kind": "definition",
+            "label": "Definition 1 · 累积证据集合",
+            "statement": "定义第 t 轮累积证据 Sₜ，更新规则为 Sₜ₊₁ = Sₜ ∪ Rₜ，其中 Rₜ 为本轮检索结果。",
+            "conditions": [
+              "证据来自固定有限集合 U",
+              "不删除已经收集的证据"
+            ],
+            "evidence_ids": [
+              "demo-loop-theory-e0"
+            ]
+          },
+          {
+            "id": "demo-loop-theory-1",
+            "kind": "lemma",
+            "label": "Lemma 1 · 新增证据计数",
+            "statement": "若 S ⊂ T ⊆ U，则 |T| ≥ |S| + 1。",
+            "conditions": [
+              "U 有限",
+              "S 为 T 的真子集"
+            ],
+            "evidence_ids": [
+              "demo-loop-theory-e1"
+            ]
+          },
+          {
+            "id": "demo-loop-theory-2",
+            "kind": "theorem",
+            "label": "Theorem 1 · 有限证据扩展上界",
+            "statement": "若每个继续执行的更新都至少增加一条新证据，则成功扩展次数最多为 |U| − |S₀|。",
+            "conditions": [
+              "采用 Definition 1 的累积更新规则",
+              "每次继续更新均满足 Sₜ ⊂ Sₜ₊₁"
+            ],
+            "evidence_ids": [
+              "demo-loop-theory-e2"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "source": "demo-loop-theory-0",
+            "target": "demo-loop-theory-2",
+            "explanation": "原创教学证明显式使用Definition 1 · 累积证据集合",
+            "evidence_ids": [
+              "demo-loop-theory-e2"
+            ]
+          },
+          {
+            "source": "demo-loop-theory-1",
+            "target": "demo-loop-theory-2",
+            "explanation": "原创教学证明显式使用Lemma 1 · 新增证据计数",
+            "evidence_ids": [
+              "demo-loop-theory-e2"
+            ]
+          }
+        ],
+        "learning_paths": {
+          "demo-loop-theory-0": [
+            "demo-loop-theory-0"
+          ],
+          "demo-loop-theory-1": [
+            "demo-loop-theory-1"
+          ],
+          "demo-loop-theory-2": [
+            "demo-loop-theory-0",
+            "demo-loop-theory-1",
+            "demo-loop-theory-2"
+          ]
+        },
         "warnings": []
       }
     },
@@ -522,15 +702,104 @@
           "text": "Skipping unnecessary retrieval reduces the number of retrieval calls in this evaluation.",
           "page": 4,
           "section": "4 Evaluation"
+        },
+        {
+          "id": "demo-reflect-theory-e0",
+          "paper_id": "demo-reflect",
+          "text": "Definition 1. For finitely many candidate steps with fixed costs c_i >= 0, the baseline cost is B = sum_i c_i. A teaching reflection policy executes subset A and incurs controller overhead H >= 0, so C = H + sum_(i in A) c_i.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-reflect-theory-e1",
+          "paper_id": "demo-reflect",
+          "text": "Lemma 1. For a finite index set I and A subset I, sum_(i in I) c_i = sum_(i in A) c_i + sum_(i in I minus A) c_i. Proof: A and its complement partition I into disjoint sets.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-reflect-theory-e2",
+          "paper_id": "demo-reflect",
+          "text": "Theorem 1. Under Definition 1, C <= B if and only if sum_(i not in A) c_i >= H. Proof: substituting Definition 1 and the decomposition in Lemma 1 yields B-C = sum_(i not in A) c_i-H. Its nonnegativity is exactly the stated condition. Cost savings alone do not imply preserved answer quality.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
         }
       ],
       "revision": 1,
       "warnings": [],
       "theory": {
         "status": "ready",
-        "nodes": [],
-        "edges": [],
-        "learning_paths": {},
+        "nodes": [
+          {
+            "id": "demo-reflect-theory-0",
+            "kind": "definition",
+            "label": "Definition 1 · 检索开销模型",
+            "statement": "设候选检索步骤开销 cᵢ ≥ 0，固定策略执行所有步骤；反思策略仅执行集合 A 中的步骤，另支付控制器开销 H ≥ 0。",
+            "conditions": [
+              "候选步骤有限",
+              "两种策略使用相同的单步检索开销"
+            ],
+            "evidence_ids": [
+              "demo-reflect-theory-e0"
+            ]
+          },
+          {
+            "id": "demo-reflect-theory-1",
+            "kind": "lemma",
+            "label": "Lemma 1 · 省略步骤开销分解",
+            "statement": "总检索开销等于已选步骤开销与省略步骤开销之和。",
+            "conditions": [
+              "A 是候选步骤集合的子集"
+            ],
+            "evidence_ids": [
+              "demo-reflect-theory-e1"
+            ]
+          },
+          {
+            "id": "demo-reflect-theory-2",
+            "kind": "theorem",
+            "label": "Theorem 1 · 反思策略节省条件",
+            "statement": "当且仅当省略步骤的检索开销之和不小于 H 时，反思策略的总开销不超过固定策略。",
+            "conditions": [
+              "采用 Definition 1 的成本模型",
+              "计入控制器开销 H"
+            ],
+            "evidence_ids": [
+              "demo-reflect-theory-e2"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "source": "demo-reflect-theory-0",
+            "target": "demo-reflect-theory-2",
+            "explanation": "原创教学证明显式使用Definition 1 · 检索开销模型",
+            "evidence_ids": [
+              "demo-reflect-theory-e2"
+            ]
+          },
+          {
+            "source": "demo-reflect-theory-1",
+            "target": "demo-reflect-theory-2",
+            "explanation": "原创教学证明显式使用Lemma 1 · 省略步骤开销分解",
+            "evidence_ids": [
+              "demo-reflect-theory-e2"
+            ]
+          }
+        ],
+        "learning_paths": {
+          "demo-reflect-theory-0": [
+            "demo-reflect-theory-0"
+          ],
+          "demo-reflect-theory-1": [
+            "demo-reflect-theory-1"
+          ],
+          "demo-reflect-theory-2": [
+            "demo-reflect-theory-0",
+            "demo-reflect-theory-1",
+            "demo-reflect-theory-2"
+          ]
+        },
         "warnings": []
       }
     },
@@ -631,15 +900,104 @@
           "text": "Unsupported statements are flagged for manual review rather than silently accepted.",
           "page": 4,
           "section": "4 Evaluation"
+        },
+        {
+          "id": "demo-verify-theory-e0",
+          "paper_id": "demo-verify",
+          "text": "Definition 1. For a fixed finite set Q of statements and fixed textual-support scores s(q) in [0,1], define A_tau = {q in Q: s(q) >= tau}, with tau in [0,1]. Scores measure the teaching checker output, not factual truth.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-verify-theory-e1",
+          "paper_id": "demo-verify",
+          "text": "Lemma 1. If tau_1 <= tau_2, every score at least tau_2 is also at least tau_1. Proof: s >= tau_2 >= tau_1 by transitivity of the order on real numbers.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
+        },
+        {
+          "id": "demo-verify-theory-e2",
+          "paper_id": "demo-verify",
+          "text": "Theorem 1. Under Definition 1 and tau_1 <= tau_2, |A_(tau_2)| <= |A_(tau_1)|. Proof: Lemma 1 and Definition 1 give A_(tau_2) subset A_(tau_1); finite set cardinality preserves inclusion. This proves only count monotonicity, not better factual correctness or score calibration.",
+          "page": 5,
+          "section": "原创数学教学样例 · 非真实论文"
         }
       ],
       "revision": 1,
       "warnings": [],
       "theory": {
         "status": "ready",
-        "nodes": [],
-        "edges": [],
-        "learning_paths": {},
+        "nodes": [
+          {
+            "id": "demo-verify-theory-0",
+            "kind": "definition",
+            "label": "Definition 1 · 支持分数阈值集",
+            "statement": "对固定的有限陈述集合 Q，给定固定文本支持分数 s(q) ∈ [0,1]，定义通过集合 Aτ = {q ∈ Q : s(q) ≥ τ}。",
+            "conditions": [
+              "Q 和各陈述分数固定",
+              "τ ∈ [0,1]"
+            ],
+            "evidence_ids": [
+              "demo-verify-theory-e0"
+            ]
+          },
+          {
+            "id": "demo-verify-theory-1",
+            "kind": "lemma",
+            "label": "Lemma 1 · 阈值集合包含关系",
+            "statement": "若 τ₁ ≤ τ₂，则通过较高阈值的陈述也通过较低阈值。",
+            "conditions": [
+              "两次筛选使用相同分数"
+            ],
+            "evidence_ids": [
+              "demo-verify-theory-e1"
+            ]
+          },
+          {
+            "id": "demo-verify-theory-2",
+            "kind": "theorem",
+            "label": "Theorem 1 · 通过数量单调性",
+            "statement": "在陈述和分数固定时，提高阈值不会增加通过的陈述数量，即 |Aτ₂| ≤ |Aτ₁|。",
+            "conditions": [
+              "采用 Definition 1 的固定集合与分数",
+              "τ₁ ≤ τ₂"
+            ],
+            "evidence_ids": [
+              "demo-verify-theory-e2"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "source": "demo-verify-theory-0",
+            "target": "demo-verify-theory-2",
+            "explanation": "原创教学证明显式使用Definition 1 · 支持分数阈值集",
+            "evidence_ids": [
+              "demo-verify-theory-e2"
+            ]
+          },
+          {
+            "source": "demo-verify-theory-1",
+            "target": "demo-verify-theory-2",
+            "explanation": "原创教学证明显式使用Lemma 1 · 阈值集合包含关系",
+            "evidence_ids": [
+              "demo-verify-theory-e2"
+            ]
+          }
+        ],
+        "learning_paths": {
+          "demo-verify-theory-0": [
+            "demo-verify-theory-0"
+          ],
+          "demo-verify-theory-1": [
+            "demo-verify-theory-1"
+          ],
+          "demo-verify-theory-2": [
+            "demo-verify-theory-0",
+            "demo-verify-theory-1",
+            "demo-verify-theory-2"
+          ]
+        },
         "warnings": []
       }
     }
