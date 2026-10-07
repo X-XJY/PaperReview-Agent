@@ -91,10 +91,10 @@ export default function Graph({
           force: { repulsion: 600, edgeLength: 180, gravity: 0.08 },
           label: {
             show: true,
-            ...(allowLayeredLayout ? { width: 130, overflow: "break" } : {}),
+            ...(allowLayeredLayout ? { width: 110, overflow: "break" } : {}),
             position: "bottom",
             color: "#263c51",
-            fontSize: 14,
+            fontSize: allowLayeredLayout && papers.length > 4 ? 12 : 14,
           },
           lineStyle: { color: "#829bb0", width: 2, curveness: 0.12 },
           emphasis: { focus: "adjacency" },
@@ -102,7 +102,7 @@ export default function Graph({
             id: p.id,
             name: p.extraction.method_name,
             ...(layered && positions ? positions[p.id] : {}),
-            symbolSize: Math.min(52 + i * 3, 68),
+            symbolSize: allowLayeredLayout && papers.length > 4 ? 38 : Math.min(52 + i * 3, 68),
             itemStyle: {
               opacity: !highlightIds || highlightIds.includes(p.id) ? 1 : 0.25,
               color: ["#1b6870", "#3371ac", "#9a7544", "#675a9a", "#537c65"][
@@ -125,7 +125,7 @@ export default function Graph({
             name: r.scope,
             evidence: r.evidence_ids,
             label: {
-              show: true,
+              show: !allowLayeredLayout || !layered,
               formatter:
                 { inherits: "继承", improves: "改进", replaces: "替代" }[
                   r.type

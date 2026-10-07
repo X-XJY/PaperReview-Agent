@@ -42,6 +42,9 @@ def test_demo_contract_and_export(client):
         for edge in theory['edges']:
             assert edge['source'] in ids and edge['target'] in ids
             assert all(ref in evidence for ref in edge['evidence_ids'])
+            source=next(n for n in theory['nodes'] if n['id']==edge['source'])
+            citation=source['label'].split(' · ')[0]
+            assert any(citation in evidence[ref]['text'] for ref in edge['evidence_ids'])
         for target,path in theory['learning_paths'].items():
             assert path[-1]==target
             assert set(path)<=ids
@@ -53,6 +56,21 @@ def test_demo_contract_and_export(client):
     assert '非真实论文事实' in report.text
     assert 'demo-atlas-e2' in report.text
     assert '可能' in report.text
+
+def test_demo_has_distinct_proof_topologies_and_branch_specific_paths(client):
+    papers=demo(client)['result']['papers']
+    assert [len(p['theory']['nodes']) for p in papers]==[3,5,4,5,6]
+    assert [len(p['theory']['edges']) for p in papers]==[2,4,3,4,7]
+    reflection=papers[3]['theory']
+    nodes=reflection['nodes']
+    branch=reflection['learning_paths'][nodes[3]['id']]
+    assert nodes[1]['id'] in branch
+    assert nodes[2]['id'] not in branch
+    verification=papers[4]['theory']
+    nodes=verification['nodes']
+    merged=verification['learning_paths'][nodes[5]['id']]
+    assert nodes[1]['id'] in merged and nodes[3]['id'] in merged
+    assert nodes[2]['id'] not in merged
 
 
 def test_demo_refreshes_old_version_without_overwriting_history(client):

@@ -67,5 +67,77 @@ for paper in papers[1:]:
     paper['theory'] = {'status': 'ready', 'nodes': nodes, 'edges': [
         {'source': nodes[i]['id'], 'target': nodes[2]['id'], 'explanation': '原创教学证明显式使用' + nodes[i]['label'], 'evidence_ids': nodes[2]['evidence_ids']} for i in [0, 1]
     ], 'learning_paths': {nodes[0]['id']: [nodes[0]['id']], nodes[1]['id']: [nodes[1]['id']], nodes[2]['id']: [n['id'] for n in nodes]}, 'warnings': []}
+# Different proof topologies are authored from the teaching arguments, rather
+# than adding decorative edges to make identical diagrams look different.
+def add_node(paper, kind, label, statement, conditions, proof):
+    index = len(paper['theory']['nodes'])
+    ref = f"{paper['id']}-theory-e{index}"
+    paper['evidence'].append({'id': ref, 'paper_id': paper['id'], 'text': proof,
+                             'page': 5, 'section': '原创数学教学样例 · 非真实论文'})
+    paper['theory']['nodes'].append({'id': f"{paper['id']}-theory-{index}",
+        'kind': kind, 'label': label, 'statement': statement,
+        'conditions': conditions, 'evidence_ids': [ref]})
+
+fusion, loop, reflect, verify = papers[1:]
+add_node(fusion, 'assumption', 'Assumption 1 · 单表示误差约束',
+         '所有输入表示满足 ‖hᵢ − h*‖ ≤ ε，其中 ε ≥ 0。', ['同一目标表示 h*'],
+         'Assumption 1. Every input representation satisfies norm(h_i-h*) <= epsilon, with epsilon >= 0. This is an assumption, not a measured empirical guarantee.')
+fusion['evidence'][6]['text'] = fusion['evidence'][6]['text'].replace('if every norm(h_i-h*) <= epsilon with epsilon >= 0', 'if Assumption 1 holds').replace('sum_i w_i epsilon = epsilon', 'sum_i w_i epsilon = epsilon, using Assumption 1')
+add_node(fusion, 'corollary', 'Corollary 1 · 精确输入的融合',
+         '若所有输入表示都等于 h*，则融合表示也等于 h*。', ['Definition 1 的非负归一化权重'],
+         'Corollary 1. If all h_i equal h*, the fused representation equals h*. Proof: apply Theorem 1 with epsilon = 0. A vector at norm distance zero equals h*. This concerns the teaching vector model only.')
+
+# Loop-R demonstrates a chain: model -> per-step growth -> finite bound -> stop.
+loop['theory']['nodes'][1].update(statement='在 Definition 1 的累积模型下，每次严格扩展都使 |Sₜ| 至少增加 1。', conditions=['U 有限', '每次继续更新满足 Sₜ ⊂ Sₜ₊₁'])
+loop['evidence'][5]['text'] = 'Lemma 1. Under Definition 1, every strict update increases |S_t| by at least one and keeps S_t inside the fixed finite U. Proof: Definition 1 uses union with R_t subset U; a strict update adds at least one previously absent element.'
+loop['evidence'][6]['text'] = 'Theorem 1. In the finite cumulative model of Lemma 1, at most |U|-|S_0| strict updates can occur. Proof: Lemma 1 gives |S_k| >= |S_0|+k and S_k subset U, so k <= |U|-|S_0|. Repeated non-expanding retrieval is outside this bound.'
+add_node(loop, 'corollary', 'Corollary 1 · 停止规则的轮数界',
+         '若首次无新增证据时停止，最多执行 |U| − |S₀| + 1 次检索。', ['每次检索均终止', '首次无新增证据立即停止'],
+         'Corollary 1. If each retrieval terminates and the loop stops on its first non-expanding retrieval, at most |U|-|S_0|+1 retrievals execute. Proof: Theorem 1 bounds strict updates by |U|-|S_0|; the stopping rule permits at most one final non-expanding retrieval.')
+
+# Reflect-R forks into two conclusions with different prerequisites.
+reflect['theory']['nodes'][1].update(label='Lemma 1 · 总成本差额', statement='在 Definition 1 的模型下，B − C = Σᵢ∉A cᵢ − H。', conditions=['采用 Definition 1 的固定成本模型'])
+reflect['evidence'][5]['text'] = 'Lemma 1. Under Definition 1, B-C = sum_(i not in A) c_i-H. Proof: Definition 1 specifies B and C; partition the finite candidate set into A and its complement and subtract.'
+reflect['evidence'][6]['text'] = 'Theorem 1. C <= B if and only if sum_(i not in A) c_i >= H. Proof: Lemma 1 gives B-C = sum_(i not in A) c_i-H; C <= B is equivalent to its nonnegativity. No answer-quality guarantee follows.'
+add_node(reflect, 'proposition', 'Proposition 1 · 零省略时的额外成本',
+         '若不省略任何检索步骤，则反思策略总开销为 B + H。', ['A 等于完整候选步骤集合'],
+         'Proposition 1. If A is the entire candidate set, C = B+H. Proof: in Lemma 1 the complement is empty, so B-C = -H. This branch does not require Theorem 1.')
+add_node(reflect, 'corollary', 'Corollary 1 · 等成本步骤的节省门槛',
+         '若每步检索成本均为 c > 0，省略 k 步即可节省总开销，当且仅当 kc ≥ H。', ['所有步骤成本等于 c > 0', 'k 为省略步骤数量'],
+         'Corollary 1. With uniform step cost c > 0 and k omitted steps, C <= B if and only if kc >= H. Proof: substitute sum_(i not in A) c_i = kc into Theorem 1.')
+
+# Verify-R demonstrates split/merge reasoning followed by a corollary.
+verify['theory']['nodes'][1].update(statement='采用 Definition 1 的筛选集合时，τ₁ ≤ τ₂ 蕴含 Aτ₂ ⊆ Aτ₁。')
+verify['evidence'][5]['text'] = 'Lemma 1. Under Definition 1, if tau_1 <= tau_2 then A_(tau_2) subset A_(tau_1). Proof: Definition 1 admits q exactly when s(q) reaches the threshold; s(q) >= tau_2 implies s(q) >= tau_1.'
+add_node(verify, 'lemma', 'Lemma 2 · 阈值区间中的陈述',
+         'Aτ₁ 中未通过 τ₂ 的陈述，恰为分数处于 [τ₁, τ₂) 的陈述。', ['Definition 1 的固定分数', 'τ₁ ≤ τ₂'],
+         'Lemma 2. Under Definition 1 and tau_1 <= tau_2, A_(tau_1) minus A_(tau_2) = {q in Q: tau_1 <= s(q) < tau_2}. Proof: Definition 1 translates membership and nonmembership into the two score inequalities.')
+add_node(verify, 'corollary', 'Corollary 1 · 通过数量的精确变化',
+         '提高阈值后减少的通过数量，等于分数位于 [τ₁, τ₂) 的陈述数量。', ['Q 有限', 'τ₁ ≤ τ₂'],
+         'Corollary 1. |A_(tau_1)|-|A_(tau_2)| equals the number of q with tau_1 <= s(q) < tau_2. Proof: Lemma 1 gives nested finite sets, so their cardinality difference equals the set-difference cardinality. Lemma 2 identifies that difference with the score interval.')
+add_node(verify, 'corollary', 'Corollary 2 · 无区间分数时数量不变',
+         '若没有陈述分数位于 [τ₁, τ₂)，提高阈值不会改变通过数量。', ['τ₁ ≤ τ₂', '区间 [τ₁, τ₂) 内无陈述分数'],
+         'Corollary 2. If no statement score lies in [tau_1,tau_2), the two thresholds accept the same number of statements. Proof: Corollary 1 gives a cardinality difference of zero. No factual-truth claim is implied.')
+
+connections = {
+    'demo-atlas': [(0, 2), (1, 2)],
+    'demo-fusion': [(0, 2), (1, 2), (3, 2), (2, 4)],
+    'demo-loop': [(0, 1), (1, 2), (2, 3)],
+    'demo-reflect': [(0, 1), (1, 2), (1, 3), (2, 4)],
+    'demo-verify': [(0, 1), (0, 3), (0, 2), (1, 2), (1, 4), (3, 4), (4, 5)],
+}
+import sys
+if __package__ in (None, ''):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from backend.theory import learning_paths
+from backend.schemas import TheoryNode, TheoryEdge
+for paper in papers:
+    nodes = paper['theory']['nodes']
+    edges = [{'source': nodes[a]['id'], 'target': nodes[b]['id'],
+              'explanation': nodes[b]['label'] + ' 的原创教学证明使用 ' + nodes[a]['label'],
+              'evidence_ids': nodes[b]['evidence_ids']} for a, b in connections[paper['id']]]
+    paper['theory']['edges'] = edges
+    paper['theory']['learning_paths'] = learning_paths(
+        [TheoryNode.model_validate(n) for n in nodes], [TheoryEdge.model_validate(e) for e in edges])
 Path('public').mkdir(exist_ok=True)
 Path('public/demo.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
