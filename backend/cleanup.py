@@ -19,6 +19,7 @@ def cleanup():
             conn.execute('DELETE FROM tutor_tasks WHERE thread IN (SELECT id FROM tutor_threads WHERE session=?)',(sid,))
             conn.execute('DELETE FROM tutor_threads WHERE session=?',(sid,))
             conn.execute('DELETE FROM revisions WHERE job IN (SELECT id FROM jobs WHERE session=?)',(sid,))
+            conn.execute('DELETE FROM learning_progress WHERE job IN (SELECT id FROM jobs WHERE session=?)',(sid,))
             conn.execute('DELETE FROM jobs WHERE session=?',(sid,))
             conn.execute('DELETE FROM sessions WHERE id=?',(sid,))
             expired.append(sid)

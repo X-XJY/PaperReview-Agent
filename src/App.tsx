@@ -52,6 +52,7 @@ import type {
 const Graph = lazy(() => import("./Graph"));
 const Tutor = lazy(() => import('./Tutor'));
 const Theory = lazy(() => import('./Theory'));
+const PdfReader = lazy(() => import('./PdfReader'));
 const statuses: Record<Status, string> = {
   supported: "有据支持",
   partial: "部分支持",
@@ -106,6 +107,7 @@ export default function App() {
     [uploadOpen, setUploadOpen] = useState(false),
     [files, setFiles] = useState<File[]>([]),
     [consent, setConsent] = useState(false);
+  const [pdfEvidence,setPdfEvidence]=useState<Evidence|null>(null);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
@@ -1213,6 +1215,8 @@ export default function App() {
                   <code>{e.id}</code>
                   <button className="evidence-link" onClick={()=>{setEvidenceIds(null);askTutor({paperIds:[e.paper_id],evidenceIds:[e.id],question:'请讲解这段原文的含义和适用条件。'});}}>请助教讲解这段原文</button>
                   {result?.mode === "live" && (
+                    <>
+                    <button className="evidence-link" onClick={()=>setPdfEvidence(e)}>定位并高亮原 PDF</button>
                     <a
                       className="evidence-link"
                       href={`/api/jobs/${job?.id}/papers/${e.paper_id}/pdf#page=${e.page || 1}`}
@@ -1221,6 +1225,7 @@ export default function App() {
                     >
                       打开原 PDF <ExternalLink size={13} />
                     </a>
+                    </>
                   )}
                 </article>
               );
@@ -1231,6 +1236,7 @@ export default function App() {
           </aside>
         </>
       )}
+      {pdfEvidence&&job&&<Suspense fallback={<div className="pdf-loading" role="status">正在加载 PDF 阅读器…<button onClick={()=>setPdfEvidence(null)}>取消</button></div>}><PdfReader jobId={job.id} evidence={pdfEvidence} title={papers.find(p=>p.id===pdfEvidence.paper_id)?.metadata.title||'原论文'} onClose={()=>setPdfEvidence(null)}/></Suspense>}
       {modal && (
         <div
           className="modal-scrim"

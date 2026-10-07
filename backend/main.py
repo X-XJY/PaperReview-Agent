@@ -16,6 +16,7 @@ from .pipeline import ONTOLOGY, PIPELINE_VERSION
 from .prompts import VERSION
 from .report import report
 from .schemas import Edit, Paper, Claim, TheoryEdit, Theory
+from . import learning
 
 @asynccontextmanager
 async def lifespan(app):
@@ -131,6 +132,7 @@ def delete_job(job_id: str, request: Request):
         conn.execute('DELETE FROM tutor_tasks WHERE thread IN (SELECT id FROM tutor_threads WHERE job=?)',(job_id,))
         conn.execute('DELETE FROM tutor_threads WHERE job=?',(job_id,))
         conn.execute('DELETE FROM revisions WHERE job=?',(job_id,))
+        conn.execute('DELETE FROM learning_progress WHERE job=?',(job_id,))
         conn.execute('DELETE FROM jobs WHERE id=?',(job_id,))
     return {'deleted':True}
 
@@ -313,6 +315,14 @@ def pdf(job_id: str, paper_id: str, request: Request):
     if not file:
         raise HTTPException(404,'示例未附带真实 PDF。')
     return FileResponse(file['path'],media_type='application/pdf',filename='paper.pdf',content_disposition_type='inline')
+
+@app.get('/api/jobs/{job_id}/papers/{paper_id}/learning')
+def learning_state(job_id: str, paper_id: str, request: Request):
+    return learning.progress(owned(job_id, request), paper_id)
+
+@app.patch('/api/jobs/{job_id}/papers/{paper_id}/learning')
+def update_learning(job_id: str, paper_id: str, value: learning.LearningEdit, request: Request):
+    return learning.save(owned(job_id, request), paper_id, value)
 
 from .tutor import router as tutor_router
 app.include_router(tutor_router)

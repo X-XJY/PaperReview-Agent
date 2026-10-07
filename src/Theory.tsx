@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Paper, Job } from "./types";
 import EvidenceText from "./LazyEvidenceText";
 import Graph from "./Graph";
+import LearningPath from './LearningPath';
 import { api } from "./api";
 import type { TutorSeed } from "./Tutor";
 
@@ -155,18 +156,7 @@ export default function Theory({
                   </select>
                 </label>
                 {path && (
-                  <ol className="theory-path">
-                    {path.map((id) => {
-                      const node = theory.nodes.find((n) => n.id === id)!;
-                      return (
-                        <li key={id}>
-                          <button onClick={() => onEvidence(node.evidence_ids)}>
-                            {node.label}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ol>
+                  <LearningPath key={jobId+paper.id} jobId={jobId} paper={paper} path={path} onEvidence={onEvidence}/>
                 )}
                 {path && (
                   <button

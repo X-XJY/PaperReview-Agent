@@ -160,3 +160,27 @@ def test_missing_field_can_be_added_with_evidence(client):
 def test_dev_proxy_origin_allowed(client):
     response=client.post('/api/jobs/demo',headers={**HEADERS,'Origin':'http://127.0.0.1:5173'})
     assert response.status_code==200
+
+
+def test_learning_persistence_invalidation_and_delete(client):
+    job=demo(client)
+    paper=job['result']['papers'][0]
+    node=paper['theory']['nodes'][0]
+    url=f"/api/jobs/{job['id']}/papers/{paper['id']}/learning"
+    initial=client.get(url).json()
+    value={'node_id':node['id'],'fingerprint':initial['nodes'][node['id']]['fingerprint'],'status':'mastered'}
+    assert client.patch(url,headers=HEADERS,json=value).status_code==200
+    assert client.get(url).json()['nodes'][node['id']]['status']=='mastered'
+    with TestClient(app) as other:
+        other.get('/api/session')
+        assert other.get(url).status_code==404
+        assert other.patch(url,headers=HEADERS,json=value).status_code==404
+    paper['theory']['nodes'][0]['statement']+=' changed'
+    db.update(job['id'],result=json.dumps(job['result'],ensure_ascii=False))
+    assert client.get(url).json()['nodes'][node['id']]['status']=='not_started'
+    assert client.patch(url,headers=HEADERS,json=value).status_code==409
+    value['node_id']='missing'
+    assert client.patch(url,headers=HEADERS,json=value).status_code==404
+    assert client.delete('/api/jobs/'+job['id'],headers=HEADERS).status_code==200
+    with db.connection() as conn:
+        assert conn.execute('SELECT COUNT(*) FROM learning_progress WHERE job=?',(job['id'],)).fetchone()[0]==0
