@@ -72,14 +72,6 @@ const tabs = [
   { id: "graph", label: "方法图谱", icon: Network },
   { id: "directions", label: "研究方向", icon: Lightbulb },
 ];
-const viewCopy: Record<string, { title: string; description: string }> = {
-  theory: { title: "理论与学习路径", description: "先选学习目标，再沿证明依赖阅读原文。" },
-  matrix: { title: "跨论文方法对比", description: "并排比较核心方法、优势、作者局限与实验结果。" },
-  papers: { title: "深入阅读每篇论文", description: "查看完整抽取结果，随时回到证据或请助教解释。" },
-  timeline: { title: "技术演进时间轴", description: "按发表年份梳理本批论文的方法变化。" },
-  graph: { title: "方法之间的联系", description: "探索有原文支持的继承、改进与替代关系。" },
-  directions: { title: "从共性问题到研究假设", description: "查看证据、验证实验和可能失败的条件。" },
-};
 function Badge({ status }: { status: Status }) {
   return (
     <span className={"badge " + status}>
@@ -439,7 +431,6 @@ export default function App() {
   }, [!!modal, evidenceIds !== null]);
   return (
     <div className={'app-shell'+(tutorOpen?' tutor-active':'')+(sidebarHidden?' sidebar-hidden':'')}>
-      <a className="skip-link" href="#research-content">跳到分析内容</a>
       {sidebarHidden && <button className="sidebar-restore icon-button" aria-label="展开侧边栏" title="展开侧边栏" onClick={()=>setSidebarHidden(false)}><PanelLeftOpen size={20}/></button>}
       <aside className="sidebar">
         <button className="sidebar-collapse icon-button" aria-label="隐藏侧边栏" title="隐藏侧边栏" onClick={()=>setSidebarHidden(true)}><PanelLeftClose size={20}/></button>
@@ -453,20 +444,12 @@ export default function App() {
           </div>
         </a>
         <div className="workspace-label">研究工作空间</div>
-        <button className={'nav-item'+(['matrix','papers','timeline'].includes(tab)?' selected':'')} onClick={() => setTab("matrix")}>
+        <button className="nav-item selected" onClick={() => setTab("matrix")}>
           <FolderOpen size={18} /> 论文方法梳理 <ChevronRight size={14} />
         </button>
         <button className="nav-item" onClick={openHistory}>
           <History size={18} /> 分析历史
         </button>
-        <nav className="side-views" aria-label="研究功能">
-          <div className="workspace-label">探索与学习</div>
-          {[tabs[0], tabs[4], tabs[5]].map(t => (
-            <button key={t.id} className={'nav-item'+(tab===t.id?' selected':'')} aria-current={tab===t.id?'page':undefined} onClick={()=>setTab(t.id)}>
-              <t.icon size={18}/>{t.id==='theory'?'理论学习':t.label}
-            </button>
-          ))}
-        </nav>
         <div className="sidebar-divider" />
         <div className="workspace-label">当前研究领域</div>
         <div className="domain-card">
@@ -498,24 +481,21 @@ export default function App() {
         <header className="topbar">
           <div className="breadcrumb">
             研究工作空间 <ChevronRight size={14} />
-            <strong>{tabs.find(t=>t.id===tab)?.label}</strong>
+            <strong>方法分析</strong>
           </div>
-          <div className="topbar-actions">
-          <button className="mobile-history icon-button" aria-label="分析历史" title="分析历史" onClick={openHistory}><History size={19}/></button>
           <button className="button secondary tutor-open-button" disabled={!job?.result?.papers.length} onClick={()=>tutorOpen?setTutorOpen(false):askTutor()}><BookOpen size={16}/>论文助教</button>
           <button className="text-button" onClick={loadDemo}>
             <BookOpen size={15} /> 打开教学示例
           </button>
-          </div>
         </header>
         <main>
           <div className="page-heading">
             <div>
-              <div className="eyebrow"><ShieldCheck size={14}/> EVIDENCE-BASED RESEARCH</div>
+              <div className="eyebrow">EVIDENCE-BASED RESEARCH</div>
               <h1>
-                论文研究工作台
+                从论文中，读懂方法的脉络<span>。</span>
               </h1>
-              <p>梳理方法，连接理论，让每一步探索都有原文依据。</p>
+              <p>对比研究方法，追溯原文依据，探索可验证的下一步。</p>
             </div>
             <div className="heading-actions">
               <button
@@ -620,12 +600,8 @@ export default function App() {
               </span>
               <div>
                 <strong>{papers.length.toString().padStart(2, "0")}</strong>
-                <small>本批文献</small>
+                <small>/ 08 篇上限</small>
               </div>
-            </div>
-            <div className="stat theory-stat">
-              <span><Layers size={17}/> 理论节点</span>
-              <div><strong>{papers.reduce((count,p)=>count+(p.theory?.nodes.length||0),0).toString().padStart(2,"0")}</strong><small>定义 · 定理 · 引理</small></div>
             </div>
             <div className="stat">
               <span>
@@ -652,25 +628,13 @@ export default function App() {
               {tabs.map((t) => (
                 <button
                   key={t.id}
-                  id={'analysis-tab-'+t.id}
                   role="tab"
-                  aria-label={t.label+(t.id==='directions'?' '+(synthesis?.directions.length||0):'')}
-                  aria-controls="research-content"
-                  tabIndex={tab===t.id?0:-1}
                   aria-selected={tab === t.id}
                   className={tab === t.id ? "active" : ""}
                   onClick={() => setTab(t.id)}
-                  onKeyDown={event=>{
-                    const index=tabs.findIndex(item=>item.id===t.id);
-                    const next=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;
-                    if(next===null)return;
-                    event.preventDefault();
-                    setTab(tabs[next].id);
-                    document.getElementById('analysis-tab-'+tabs[next].id)?.focus();
-                  }}
                 >
                   <t.icon size={17} />
-                  {t.id==='theory'?'理论学习':t.label}
+                  {t.label}
                   {t.id === "directions" && (
                     <span className="count">
                       {synthesis?.directions.length || 0}
@@ -678,10 +642,6 @@ export default function App() {
                   )}
                 </button>
               ))}
-            </div>
-            <div className="view-heading">
-              <div><h2>{viewCopy[tab].title}</h2><p>{viewCopy[tab].description}</p></div>
-              <span className="context-badge">{result?.mode==='demo'?'教学示例':active?'分析进行中':result?'当前分析':'研究工作空间'}</span>
             </div>
             <div className="toolbar">
               <div className="search-box">
@@ -716,7 +676,7 @@ export default function App() {
                   </option>
                 ))}
               </select>
-              <span className="toolbar-count" role="status">{query||filter!=='all'?`${filtered.length} / ${papers.length} 篇匹配`:`${filtered.length} 篇论文`}</span>
+              <span className="toolbar-count">{filtered.length} 篇论文</span>
               {tab === "matrix" && (
                 <button
                   className="text-button"
@@ -733,7 +693,6 @@ export default function App() {
                 </button>
               )}
             </div>
-            <div id="research-content" role="tabpanel" aria-labelledby={'analysis-tab-'+tab} tabIndex={-1}>
             {!job ? (
               <div className="empty">
                 <Loader2 size={28} className="spin" />
@@ -753,7 +712,6 @@ export default function App() {
               <div className="empty">
                 <Search size={32} />
                 <h3>没有匹配的论文</h3>
-                <p>尝试论文标题、方法名称或理论关键词，也可以重置筛选。</p>
                 <button
                   className="text-button"
                   onClick={() => {
@@ -767,7 +725,7 @@ export default function App() {
             ) : (
               <>
                 {tab === "matrix" && (
-                  <div className="matrix-layout"><p className="matrix-layout-note">左右滑动查看各列，列内可独立滚动；点击论文标题阅读详情。</p><div className="table-scroll" role="region" aria-label="论文对比矩阵，可左右滚动" tabIndex={0}>
+                  <div className="matrix-layout"><p className="matrix-layout-note">各列可独立滚动查看完整内容；点击论文标题可阅读详情。</p><div className="table-scroll">
                     <table className="comparison">
                       <thead>
                         <tr>
@@ -1163,7 +1121,6 @@ export default function App() {
                 )}
               </>
             )}
-            </div>
             <div className="panel-footer">
               <span>
                 <ShieldCheck size={14} />

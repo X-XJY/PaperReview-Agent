@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { BookOpen, Layers, Network, Plus, ArrowUpRight } from "lucide-react";
 import type { Paper, Job } from "./types";
 import EvidenceText from "./LazyEvidenceText";
 import Graph from "./Graph";
@@ -85,42 +84,7 @@ export default function Theory({
         const path = selected ? theory?.learning_paths[selected.id] : undefined;
         return (
           <section key={paper.id} className="theory-paper">
-            <div className="theory-paper-header">
-              <div>
-                <span className="theory-kicker">
-                  理论分析
-                  {paper.metadata.year ? " · " + paper.metadata.year : ""}
-                </span>
-                <h3>{paper.metadata.title}</h3>
-                <p>
-                  {theory?.nodes.length || 0} 个理论节点 ·{" "}
-                  {theory?.edges.length || 0} 条证明依赖
-                </p>
-              </div>
-              {editable && (
-                <button
-                  className="theory-add"
-                  disabled={saving}
-                  onClick={() => {
-                    setError("");
-                    setEdit({
-                      paper,
-                      isNew: true,
-                      node: {
-                        id: "manual-" + crypto.randomUUID(),
-                        kind: "theorem",
-                        label: "",
-                        statement: "",
-                        conditions: [],
-                        evidence_ids: [],
-                      },
-                    });
-                  }}
-                >
-                  <Plus size={14} /> 补充理论结果
-                </button>
-              )}
-            </div>
+            <h3>{paper.metadata.title}</h3>
             {theory?.status === "pending" && (
               <p role="status">
                 人工修改已保存。请点击页面的重新推导，核验后将重建证明依赖和学习路径。
@@ -131,6 +95,28 @@ export default function Theory({
                 {w}
               </p>
             ))}
+            {editable && (
+              <button
+                disabled={saving}
+                onClick={() => {
+                  setError("");
+                  setEdit({
+                    paper,
+                    isNew: true,
+                    node: {
+                      id: "manual-" + crypto.randomUUID(),
+                      kind: "theorem",
+                      label: "",
+                      statement: "",
+                      conditions: [],
+                      evidence_ids: [],
+                    },
+                  });
+                }}
+              >
+                补充理论结果
+              </button>
+            )}
             {!theory ? (
               <p>此分析尚未包含理论结果，可点击重新推导补充分析。</p>
             ) : !theory.nodes.length ? (
@@ -141,212 +127,156 @@ export default function Theory({
               </p>
             ) : (
               <>
-                <div className="learning-toolbar">
-                  <label>
-                    <Layers size={16} /> 学习目标{" "}
-                    <select
-                      disabled={theory.status === "pending"}
-                      value={selected ? selected.id : ""}
-                      onChange={(e) =>
-                        setTarget(paper.id + ":" + e.target.value)
-                      }
-                    >
-                      <option value="">请选择定理或概念</option>
-                      {theory.nodes.map((n) => (
-                        <option key={n.id} value={n.id}>
-                          {n.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <span>
-                    {selected
-                      ? "已突出显示这条路径中的前置结果"
-                      : "选择定理或概念，生成有依据的学习顺序"}
-                  </span>
-                </div>
-                <div className="learning-path-box">
-                  {path && (
-                    <ol className="theory-path">
-                      {path.map((id) => {
-                        const node = theory.nodes.find((n) => n.id === id)!;
-                        return (
-                          <li key={id}>
-                            <button
-                              onClick={() => onEvidence(node.evidence_ids)}
-                            >
-                              {node.label}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ol>
-                  )}
-                  {path && (
-                    <button
-                      className="path-tutor-button"
-                      onClick={() =>
-                        onTutor({
-                          paperIds: [paper.id],
-                          evidenceIds: [
-                            ...new Set([
-                              ...path.flatMap(
-                                (id) =>
-                                  theory.nodes.find((n) => n.id === id)!
-                                    .evidence_ids,
-                              ),
-                              ...theory.edges
-                                .filter(
-                                  (e) =>
-                                    path.includes(e.source) &&
-                                    path.includes(e.target),
-                                )
-                                .flatMap((e) => e.evidence_ids),
-                            ]),
-                          ],
-                          question: `我的学习目标是“${selected!.label}”。请按以下前置知识顺序讲解：${path.map((id) => theory.nodes.find((n) => n.id === id)!.label).join(" → ")}。逐步解释适用前提、证明中如何使用前置结果，并在最后给一道检查理解的问题。若原文不足请明确说明。`,
-                        })
-                      }
-                    >
-                      <BookOpen size={16} /> 请助教带我学习这条路径{" "}
-                      <ArrowUpRight size={14} />
-                    </button>
-                  )}
-                </div>
-                <div className="theory-body">
-                  <div className="theory-nodes">
+                <label>
+                  学习目标{" "}
+                  <select
+                    disabled={theory.status === "pending"}
+                    value={selected ? selected.id : ""}
+                    onChange={(e) => setTarget(paper.id + ":" + e.target.value)}
+                  >
+                    <option value="">请选择定理或概念</option>
                     {theory.nodes.map((n) => (
-                      <article
-                        key={n.id}
-                        className={
-                          selected?.id === n.id
-                            ? "theory-node selected-node"
-                            : "theory-node"
-                        }
-                      >
-                        <small className="theory-kind">{kinds[n.kind]}</small>
-                        <h4>{n.label}</h4>
-                        <EvidenceText text={n.statement} />
-                        {n.conditions.length > 0 && (
-                          <details className="theory-conditions">
-                            <summary>
-                              适用前提 <span>{n.conditions.length} 项</span>
-                            </summary>
-                            <ul>
-                              {n.conditions.map((c, i) => (
-                                <li key={i}>
-                                  <EvidenceText text={c} />
-                                </li>
-                              ))}
-                            </ul>
-                          </details>
-                        )}
-                        <div className="theory-node-actions">
-                          <button
-                            className="evidence-link"
-                            onClick={() => onEvidence(n.evidence_ids)}
-                          >
-                            <BookOpen size={14} /> 查看原文依据{" "}
-                            <span>{n.evidence_ids.length}</span>
-                          </button>
-                          {editable && (
-                            <button
-                              disabled={saving}
-                              onClick={() => {
-                                setError("");
-                                setEdit({
-                                  paper,
-                                  node: {
-                                    ...n,
-                                    conditions: [...n.conditions],
-                                    evidence_ids: [...n.evidence_ids],
-                                  },
-                                });
-                              }}
-                            >
-                              修正
-                            </button>
-                          )}
-                        </div>
-                      </article>
+                      <option key={n.id} value={n.id}>
+                        {n.label}
+                      </option>
                     ))}
-                  </div>
-                  <div className="theory-graph-section">
-                    <h4>
-                      <Network size={16} /> 证明依赖{" "}
-                      <span>{theory.edges.length} 条</span>
-                    </h4>
-                    {theory.status !== "pending" && (
-                      <Graph
-                        allowLayeredLayout
-                        highlightIds={path}
-                        ariaLabel="理论证明依赖图；箭头由前提指向结果"
-                        papers={theory.nodes.map((n) => ({
-                          ...paper,
-                          id: n.id,
-                          extraction: {
-                            ...paper.extraction,
-                            method_name: n.label,
-                            methods: [
-                              {
-                                id: n.id,
-                                text: n.statement,
-                                evidence_ids: n.evidence_ids,
-                                kind: "author_statement",
-                                status: "supported",
-                                reason: "",
-                              },
-                            ],
-                          },
-                        }))}
-                        synthesis={{
-                          summary: [],
-                          directions: [],
-                          common_gaps: [],
-                          relations: theory.edges.map((e) => ({
-                            ...e,
-                            type: "depends",
-                            scope: e.explanation,
-                            status: "supported",
-                          })),
-                        }}
-                        onEvidence={onEvidence}
-                      />
-                    )}
-                    {!theory.edges.length && (
-                      <p>未发现明确的节点间证明依赖。</p>
-                    )}
-                    <div className="relation-list">
-                      {theory.edges.map((e) => (
-                        <details
-                          className="proof-relation"
-                          key={e.source + e.target}
-                        >
-                          <summary>
-                            <span>
-                              {
-                                theory.nodes.find((n) => n.id === e.source)
-                                  ?.label
-                              }{" "}
-                              →{" "}
-                              {
-                                theory.nodes.find((n) => n.id === e.target)
-                                  ?.label
-                              }
-                            </span>
-                            <small>证明说明</small>
-                          </summary>
-                          <p>{e.explanation}</p>
-                          <button
-                            className="evidence-link"
-                            onClick={() => onEvidence(e.evidence_ids)}
-                          >
-                            <BookOpen size={14} /> 查看原文依据
+                  </select>
+                </label>
+                {path && (
+                  <ol className="theory-path">
+                    {path.map((id) => {
+                      const node = theory.nodes.find((n) => n.id === id)!;
+                      return (
+                        <li key={id}>
+                          <button onClick={() => onEvidence(node.evidence_ids)}>
+                            {node.label}
                           </button>
-                        </details>
-                      ))}
-                    </div>
-                  </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+                {path && (
+                  <button
+                    onClick={() =>
+                      onTutor({
+                        paperIds: [paper.id],
+                        evidenceIds: [
+                          ...new Set([
+                            ...path.flatMap(
+                              (id) =>
+                                theory.nodes.find((n) => n.id === id)!
+                                  .evidence_ids,
+                            ),
+                            ...theory.edges
+                              .filter(
+                                (e) =>
+                                  path.includes(e.source) &&
+                                  path.includes(e.target),
+                              )
+                              .flatMap((e) => e.evidence_ids),
+                          ]),
+                        ],
+                        question: `我的学习目标是“${selected!.label}”。请按以下前置知识顺序讲解：${path.map((id) => theory.nodes.find((n) => n.id === id)!.label).join(" → ")}。逐步解释适用前提、证明中如何使用前置结果，并在最后给一道检查理解的问题。若原文不足请明确说明。`,
+                      })
+                    }
+                  >
+                    请助教带我学习这条路径
+                  </button>
+                )}
+                <div className="theory-nodes">
+                  {theory.nodes.map((n) => (
+                    <article key={n.id}>
+                      <small>{kinds[n.kind]}</small>
+                      <h4>{n.label}</h4>
+                      <EvidenceText text={n.statement} />
+                      {n.conditions.length > 0 && (
+                        <>
+                          <strong>适用前提</strong>
+                          {n.conditions.map((c, i) => (
+                            <EvidenceText key={i} text={c} />
+                          ))}
+                        </>
+                      )}
+                      <button
+                        className="evidence-link"
+                        onClick={() => onEvidence(n.evidence_ids)}
+                      >
+                        查看原文依据
+                      </button>
+                      {editable && (
+                        <button
+                          disabled={saving}
+                          onClick={() => {
+                            setError("");
+                            setEdit({
+                              paper,
+                              node: {
+                                ...n,
+                                conditions: [...n.conditions],
+                                evidence_ids: [...n.evidence_ids],
+                              },
+                            });
+                          }}
+                        >
+                          修正
+                        </button>
+                      )}
+                    </article>
+                  ))}
+                </div>
+                <h4>证明依赖</h4>
+                {theory.status !== "pending" && (
+                  <Graph
+                    allowLayeredLayout
+                    highlightIds={path}
+                    ariaLabel="理论证明依赖图；箭头由前提指向结果"
+                    papers={theory.nodes.map((n) => ({
+                      ...paper,
+                      id: n.id,
+                      extraction: {
+                        ...paper.extraction,
+                        method_name: n.label,
+                        methods: [
+                          {
+                            id: n.id,
+                            text: n.statement,
+                            evidence_ids: n.evidence_ids,
+                            kind: "author_statement",
+                            status: "supported",
+                            reason: "",
+                          },
+                        ],
+                      },
+                    }))}
+                    synthesis={{
+                      summary: [],
+                      directions: [],
+                      common_gaps: [],
+                      relations: theory.edges.map((e) => ({
+                        ...e,
+                        type: "depends",
+                        scope: e.explanation,
+                        status: "supported",
+                      })),
+                    }}
+                    onEvidence={onEvidence}
+                  />
+                )}
+                {!theory.edges.length && <p>未发现明确的节点间证明依赖。</p>}
+                <div className="relation-list">
+                  {theory.edges.map((e) => (
+                    <button
+                      key={e.source + e.target}
+                      onClick={() => onEvidence(e.evidence_ids)}
+                    >
+                      <span>
+                        {theory.nodes.find((n) => n.id === e.source)?.label} →{" "}
+                        {theory.nodes.find((n) => n.id === e.target)?.label}
+                        <small>{e.explanation}</small>
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </>
             )}
