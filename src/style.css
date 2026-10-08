@@ -1692,3 +1692,5 @@ select {
 .structured-proof {margin-bottom:20px;padding:16px;background:white;border:1px solid #d4def1;border-radius:12px;}
 .structured-proof details {margin:10px 0;}
 .structured-proof summary {cursor:pointer;font-weight:600;color:#365ac5;}
+
+.reading-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:18px;border:1px solid #d8e2ef;border-radius:14px;margin:18px 0;background:#f8faff}.reading-controls label{display:flex;gap:10px;align-items:center;min-width:0;flex:1}.reading-controls select{max-width:100%;min-width:0;flex:1}.reading-controls p{flex-basis:100%;margin:0}.reading-controls button[aria-pressed=true]{background:#355bac;color:white;border-color:#355bac}.theory-catalog{margin:20px 0}.theory-catalog>summary{cursor:pointer;padding:14px;background:#f3f6fb;border-radius:10px;font-weight:600}.reading-quick .relation-list{display:none}[id^="proof-"],[id^="goal-"]{scroll-margin-top:24px}

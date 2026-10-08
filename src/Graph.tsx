@@ -17,6 +17,7 @@ export default function Graph({
   allowLayeredLayout = false,
   nodeKinds,
   targetId,
+  onLearningTarget,
 }: {
   papers: Paper[];
   synthesis: Synthesis | null;
@@ -26,6 +27,7 @@ export default function Graph({
   allowLayeredLayout?: boolean;
   nodeKinds?: Record<string, string>;
   targetId?: string;
+  onLearningTarget?: (id: string, openProof: boolean) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof echarts.init> | null>(null);
@@ -162,12 +164,50 @@ export default function Graph({
   }, [papers, synthesis, highlightIds, layered, focusId, onlyTarget, targetId, nodeKinds]);
   function exportGraph(format: "svg" | "png") {
     const svg = container.current?.querySelector("svg"); if (!svg) return;
-    const markup = new XMLSerializer().serializeToString(svg);
+    const width = Math.max(640, svg.clientWidth), graphHeight = svg.clientHeight;
+    const ns = "http://www.w3.org/2000/svg";
+    const output = document.createElementNS(ns, "svg");
+    output.setAttribute("xmlns", ns);
+    let y = 36;
+    const text = (value:string, size=15, color="#263c51") => {
+      const line = document.createElementNS(ns,"text");
+      line.setAttribute("x","24"); line.setAttribute("y",String(y));
+      line.setAttribute("font-size",String(size)); line.setAttribute("fill",color);
+      line.setAttribute("font-family","Arial, Microsoft YaHei, sans-serif");
+      line.textContent=value; output.appendChild(line); y+=size+12;
+    };
+    const wrap = (value:string) => {
+      let line="", units=0;
+      for (const char of value) { const size=char.charCodeAt(0)>255?15:8;
+        if(units+size>width-48){text(line);line="";units=0;}
+        line+=char;units+=size;
+      }
+      if(line)text(line);
+    };
+    text(nodeKinds ? "研脉 · 理论证明依赖图" : "研脉 · 方法演进图谱",24);
+    wrap(visible ? "范围：当前学习目标及其前置依赖" : "范围：完整图谱");
+    const legend = nodeKinds ? [...new Set(shownPapers.map(p=>nodeKinds[p.id]))] : ["method"];
+    let x=24;
+    for (const kind of legend) {
+      const dot=document.createElementNS(ns,"circle");dot.setAttribute("cx",String(x+7));dot.setAttribute("cy",String(y-5));dot.setAttribute("r","6");dot.setAttribute("fill",kindColors[kind]||"#3371ac");output.appendChild(dot);
+      const label=document.createElementNS(ns,"text");label.setAttribute("x",String(x+20));label.setAttribute("y",String(y));label.setAttribute("font-size","15");label.textContent=kindLabels[kind]||"研究方法";output.appendChild(label);x+=100;
+    }
+    y+=24;
+    const copy=svg.cloneNode(true) as SVGSVGElement;
+    copy.setAttribute("x",String((width-svg.clientWidth)/2));copy.setAttribute("y",String(y));output.appendChild(copy);
+    y+=graphHeight+28;
+    wrap(nodeKinds ? "箭头：前提 → 结论；蓝色描边为上游，橙色描边为下游。" : "箭头：方法之间的继承、改进或替代关系。节点颜色用于区分方法。");
+    text("论文来源",17);
+    for(const source of new Set(papers.map(p=>p.metadata.title+(p.metadata.year?`（${p.metadata.year}）`:""))))wrap(source);
+    const height=y+16;
+    output.setAttribute("width",String(width));output.setAttribute("height",String(height));output.setAttribute("viewBox",`0 0 ${width} ${height}`);
+    const background=document.createElementNS(ns,"rect");background.setAttribute("width","100%");background.setAttribute("height","100%");background.setAttribute("fill","white");output.prepend(background);
+    const markup = new XMLSerializer().serializeToString(output);
     const blob = new Blob([markup], {type:"image/svg+xml;charset=utf-8"});
     const url = URL.createObjectURL(blob);
     const download = (href:string) => { setExportUrl({url:href,format}); const a=document.createElement("a"); a.href=href; a.download=`研脉-知识图谱.${format}`; a.click(); };
     if (format==="svg") { download(url); return; }
-    const image = new Image(); image.onload=()=> { const canvas=document.createElement("canvas"); canvas.width=svg.clientWidth*2; canvas.height=svg.clientHeight*2; const ctx=canvas.getContext("2d")!; ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);canvas.toBlob(b=>{if(b){const u=URL.createObjectURL(b);download(u);}},"image/png");URL.revokeObjectURL(url); }; image.onerror=()=>URL.revokeObjectURL(url); image.src=url;
+    const image = new Image(); image.onload=()=> { const canvas=document.createElement("canvas"); canvas.width=width*2; canvas.height=height*2; const ctx=canvas.getContext("2d")!; ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);canvas.toBlob(b=>{if(b){const u=URL.createObjectURL(b);download(u);}},"image/png");URL.revokeObjectURL(url); }; image.onerror=()=>URL.revokeObjectURL(url); image.src=url;
   }
   function zoom(factor: number) {
     const chart = chartRef.current;
@@ -194,7 +234,7 @@ export default function Graph({
         if (event.key === "Tab") {
           const buttons = Array.from(
             shell.current?.querySelectorAll<HTMLButtonElement>(
-              "button:not(:disabled)",
+              "button:not(:disabled), select, a[href]",
             ) || [],
           );
           if (event.shiftKey && document.activeElement === buttons[0]) {
@@ -279,7 +319,7 @@ export default function Graph({
       </div>
       {exportUrl && <p role="status">图片已生成：<a href={exportUrl.url} download={`研脉-知识图谱.${exportUrl.format}`}>点击保存 {exportUrl.format.toUpperCase()} 图片</a></p>}
       {nodeKinds && <div className="graph-legend">{Object.entries(kindLabels).map(([k,label])=><span key={k}><i style={{background:kindColors[k]}}/>{label}</span>)}<span>蓝色描边：上游前提 · 橙色描边：下游结果</span></div>}
-      {focused && <div className="graph-detail"><strong>{focused.extraction.method_name}</strong><p>{focused.extraction.methods[0]?.text}</p><p>上游 {upstream.size} 项 · 下游 {downstream.size} 项</p><button onClick={()=>evidenceHandler.current(focused.extraction.methods.flatMap(c=>c.evidence_ids))}>查看节点原文依据</button><button onClick={()=>setFocusId("")}>清除高亮</button></div>}
+      {focused && <div className="graph-detail"><strong>{focused.extraction.method_name}</strong><p>{focused.extraction.methods[0]?.text}</p><p>上游 {upstream.size} 项 · 下游 {downstream.size} 项</p><button onClick={()=>evidenceHandler.current(focused.extraction.methods.flatMap(c=>c.evidence_ids))}>查看节点原文依据</button>{onLearningTarget && <><button onClick={()=>{setExpanded(false);onLearningTarget(focused.id,false);}}>设为学习目标</button><button onClick={()=>{setExpanded(false);onLearningTarget(focused.id,true);}}>打开证明讲解</button></>}<button onClick={()=>setFocusId("")}>清除高亮</button></div>}
       <div
         ref={container}
         className="graph"

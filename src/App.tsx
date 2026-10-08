@@ -1,3 +1,4 @@
+import { readMemory, writeMemory } from "./readingMemory";
 import EvidenceText from './LazyEvidenceText';
 import {
   useCallback,
@@ -149,7 +150,7 @@ export default function App() {
         setTags(flatten([...ontology.tasks, ...ontology.methods]));
         const jobs = await api<{ id: string }[]>("/jobs");
         if (jobs.length) {
-          const latest = await api<Job>("/jobs/" + jobs[0].id);
+          const latest = await api<Job>("/jobs/" + (jobs.find(j=>j.id===readMemory("paper-review:last-job",""))?.id || jobs[0].id));
           // Refresh pristine teaching fixtures through the versioned endpoint.
           // Edited examples and real analyses keep their original history.
           if (latest.result?.mode !== "demo" || latest.stale ||
@@ -172,6 +173,7 @@ export default function App() {
       }
     })();
   }, []);
+  useEffect(()=>{if(job)writeMemory("paper-review:last-job",job.id);},[job?.id]);
   useEffect(() => {
     if (!job || !["queued", "running"].includes(job.status)) return;
     const timer = setInterval(
@@ -983,7 +985,7 @@ export default function App() {
                     </div>
                   </div>
                 )}
-                {tab === "theory" && <Suspense fallback={<div className="empty">正在加载理论分析…</div>}><Theory papers={filtered} isDemo={result?.mode==='demo'} onEvidence={showEvidence} jobId={job!.id} editable={connected && job?.result?.mode==='live' && !['queued','running'].includes(job.status)} onUpdate={setJob} onTutor={askTutor}/></Suspense>}
+                {tab === "theory" && <Suspense fallback={<div className="empty">正在加载理论分析…</div>}><Theory key={job!.id} papers={filtered} isDemo={result?.mode==='demo'} onEvidence={showEvidence} jobId={job!.id} editable={connected && job?.result?.mode==='live' && !['queued','running'].includes(job.status)} onUpdate={setJob} onTutor={askTutor}/></Suspense>}
                 {tab === "graph" && (
                   <div className="graph-view">
                     <div className="view-note">

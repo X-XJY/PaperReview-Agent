@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {readMemory,writeMemory} from "./readingMemory";
 import type { Paper } from "./types";
 import type { TutorSeed } from "./Tutor";
 import LearningPath from "./LearningPath";
@@ -14,7 +15,9 @@ export default function MethodStudy({
   onEvidence: (ids: string[]) => void;
   onTutor: (seed: TutorSeed) => void;
 }) {
-  const [goal, setGoal] = useState("methods");
+  const key="paper-review:method-goal:"+jobId+":"+paper.id;
+  const [goal,setGoal]=useState(()=>readMemory(key,"methods"));
+  useEffect(()=>{writeMemory(key,goal);},[key,goal]);
   const nodes = methodStudyNodes(paper);
   const selected = nodes.filter((n) => goal === "all" || n.kind === goal);
   if (!nodes.length)

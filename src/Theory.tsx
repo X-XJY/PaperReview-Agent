@@ -6,6 +6,7 @@ import ProofWalkthrough from "./ProofWalkthrough";
 import { BookOpen, ChevronDown } from "lucide-react";
 import MethodStudy from "./MethodStudy";
 import LearningPath from "./LearningPath";
+import { readMemory, writeMemory, useReadingPosition } from "./readingMemory";
 import { api } from "./api";
 import type { TutorSeed } from "./Tutor";
 
@@ -36,8 +37,19 @@ export default function Theory({
   onUpdate: (job: Job) => void;
   onTutor: (seed: TutorSeed) => void;
 }) {
-  const [readingMode,setReadingMode] = useState<"auto"|"theory"|"method">("auto");
-  const [target, setTarget] = useState("");
+  const memoryKey="paper-review:reading:"+jobId;
+  const saved=useRef(readMemory<{mode:"auto"|"theory"|"method";target:string;paper:string;density:"quick"|"deep"}>(memoryKey,{mode:"auto",target:"",paper:"",density:"quick"})).current;
+  const [readingMode,setReadingMode] = useState(saved.mode);
+  const [target, setTarget] = useState(saved.target);
+  const [currentPaper,setCurrentPaper]=useState(saved.paper);
+  const [density,setDensity]=useState(saved.density);
+  const readingRoot=useReadingPosition(memoryKey+":position");
+  useEffect(()=>{writeMemory(memoryKey,{mode:readingMode,target,paper:currentPaper,density});},[memoryKey,readingMode,target,currentPaper,density]);
+  function chooseTarget(paper:Paper,id:string,proof:boolean) {
+    setTarget(paper.id+":"+id);setCurrentPaper(paper.id);setReadingMode("theory");
+    if(proof)setDensity("deep");
+    setTimeout(()=>document.getElementById((proof?"proof-":"goal-")+paper.id)?.scrollIntoView({behavior:"smooth",block:"start"}),100);
+  }
   const [edit, setEdit] = useState<{
     paper: Paper;
     node: Node;
@@ -78,7 +90,7 @@ export default function Theory({
     }
   }
   return (
-    <div className="theory-view">
+    <div ref={readingRoot} className={`theory-view reading-${density}`}>
       <div className="view-note">
         先选一个想弄懂的结论，再按前置知识顺序学习。有正式理论结果时展示证明关系；没有时提供有原文依据的方法学习路线。
         <details className="theory-help">
@@ -109,12 +121,17 @@ export default function Theory({
         <strong>阅读模式</strong>{([['auto','自动选择'],['theory','理论与证明'],['method','方法与实验']] as const).map(([value,label])=><button key={value} aria-pressed={readingMode===value} onClick={()=>setReadingMode(value)}>{label}</button>)}
         <p>自动模式根据已提取内容选择：有正式结果时阅读理论；没有时阅读方法。可随时切换，不需要重新分析论文。</p>
       </div>
+      <div className="reading-controls">
+        <label>当前阅读论文 <select value={papers.some(p=>p.id===currentPaper)?currentPaper:""} onChange={e=>setCurrentPaper(e.target.value)}><option value="">全部论文</option>{papers.map(p=><option key={p.id} value={p.id}>{p.metadata.title}</option>)}</select></label>
+        <div role="group" aria-label="阅读深度"><button aria-pressed={density==='quick'} onClick={()=>setDensity('quick')}>快速阅读</button><button aria-pressed={density==='deep'} onClick={()=>setDensity('deep')}>深入学习</button></div>
+        <p className="muted">{density==='quick'?'先看学习路线和依赖图，详细陈述按需展开。':'展示完整陈述、适用前提与逐步证明讲解。'} 阅读目标与展开位置会在本浏览器自动保存。</p>
+      </div>
       {isDemo && (
         <p className="theory-demo-note">
           教学演示：以下定义、引理、定理及证明为原创数学样例，用于体验证据溯源和学习路径，不是真实论文成果，也不证明对应方法的实际效果。
         </p>
       )}
-      {papers.map((paper) => {
+      {papers.filter(p=>!papers.some(p=>p.id===currentPaper)||p.id===currentPaper).map((paper) => {
         const theory = paper.theory;
         const hasTheory=Boolean(theory?.nodes.length);
         const hasMethod=paper.extraction.methods.some(c=>c.status==='supported');
@@ -126,6 +143,7 @@ export default function Theory({
         return (
           <section
             key={paper.id}
+            data-paper-id={paper.id}
             className={`theory-paper${!theory?.nodes.length ? " theory-paper-empty" : ""}`}
           >
             <h3>{paper.metadata.title}</h3>
@@ -233,7 +251,7 @@ export default function Theory({
               </div>
             ) : (
               <>
-                <label>
+                <label id={"goal-"+paper.id}>
                   学习目标{" "}
                   <select
                     disabled={theory.status === "pending"}
@@ -298,8 +316,8 @@ export default function Theory({
                     请助教带我学习这条路径
                   </button>
                 )}
-                {selected && theory.status !== "pending" && <ProofWalkthrough jobId={jobId} paper={paper} target={selected.id} onEvidence={onEvidence} onTutor={onTutor}/>}
-                <div className="theory-nodes">
+                {selected && theory.status !== "pending" && <div id={"proof-"+paper.id}>{density==='deep'?<ProofWalkthrough jobId={jobId} paper={paper} target={selected.id} onEvidence={onEvidence} onTutor={onTutor}/>:<button className="evidence-link" onClick={()=>setDensity('deep')}>深入查看证明讲解 · {selected.label}</button>}</div>}
+                <details className="theory-catalog" open={density==='deep'}><summary>理论陈述与适用前提 · {theory.nodes.length} 项（点击展开）</summary><div className="theory-nodes">
                   {theory.nodes.map((n) => (
                     <article key={n.id}>
                       <small>{kinds[n.kind]}</small>
@@ -340,9 +358,11 @@ export default function Theory({
                     </article>
                   ))}
                 </div>
+                </details>
                 <h4>证明依赖</h4>
                 {theory.status !== "pending" && (
                   <Graph
+                    onLearningTarget={(id,proof)=>chooseTarget(paper,id,proof)}
                     allowLayeredLayout
                     targetId={selected?.id}
                     nodeKinds={Object.fromEntries(theory.nodes.map(n=>[n.id,n.kind]))}
