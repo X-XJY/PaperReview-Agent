@@ -1685,3 +1685,10 @@ select {
 .graph-detail {margin:8px 16px;padding:12px;border:1px solid #c8d6e9;border-radius:10px;background:#f5f8ff;max-height:200px;overflow:auto;}
 .graph-detail button {margin-right:8px;}
 .graph-toolbar {flex-wrap:wrap;}
+.reading-mode {padding:16px;margin:16px 0;background:#f3f6ff;border:1px solid #d5def1;border-radius:12px;}
+.reading-mode button {margin-left:10px;}
+.reading-mode button[aria-pressed=true] {background:#365ac5;color:white;border-color:#365ac5;}
+.reading-mode p,.paper-mode-label {font-size:14px;color:#52647c;}
+.structured-proof {margin-bottom:20px;padding:16px;background:white;border:1px solid #d4def1;border-radius:12px;}
+.structured-proof details {margin:10px 0;}
+.structured-proof summary {cursor:pointer;font-weight:600;color:#365ac5;}

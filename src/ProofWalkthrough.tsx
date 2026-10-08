@@ -1,8 +1,9 @@
 import type {Paper} from './types';
 import type {TutorSeed} from './Tutor';
 import EvidenceText from './LazyEvidenceText';
+import StructuredProof from './StructuredProof';
 
-export default function ProofWalkthrough({paper,target,onEvidence,onTutor}:{paper:Paper;target:string;onEvidence:(ids:string[])=>void;onTutor:(seed:TutorSeed)=>void}) {
+export default function ProofWalkthrough({paper,target,jobId,onEvidence,onTutor}:{jobId:string;paper:Paper;target:string;onEvidence:(ids:string[])=>void;onTutor:(seed:TutorSeed)=>void}) {
   const theory=paper.theory!;
   const node=theory.nodes.find(n=>n.id===target)!;
   const edges=theory.edges.filter(e=>e.target===target);
@@ -19,7 +20,8 @@ export default function ProofWalkthrough({paper,target,onEvidence,onTutor}:{pape
   const formal=['theorem','lemma','proposition','corollary'].includes(node.kind);
   const evidenceButton=(ids:string[]) => <button disabled={!ids.length} onClick={()=>onEvidence(ids)}>定位原文依据</button>;
   return <section className="proof-walkthrough">
-    <h4>证明逐步讲解 · {node.label}</h4>
+    <StructuredProof key={jobId+paper.id+target} jobId={jobId} paper={paper} target={target} onEvidence={onEvidence}/>
+    <h4>原文证明导读 · {node.label}</h4>
     <p className="muted">按原文顺序阅读证明依据。以下为证据导读；依赖关系不自动等于完整证明。</p>
     <article><h5>1 · 目标</h5><EvidenceText text={node.statement}/>{evidenceButton(node.evidence_ids)}</article>
     <article><h5>2 · 使用的前提</h5>

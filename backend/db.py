@@ -34,6 +34,8 @@ def init():
         CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY, session TEXT NOT NULL, status TEXT NOT NULL, stage TEXT NOT NULL, payload TEXT NOT NULL, result TEXT, error TEXT, created REAL NOT NULL, updated REAL NOT NULL, calls INTEGER NOT NULL DEFAULT 0, input_tokens INTEGER NOT NULL DEFAULT 0, output_tokens INTEGER NOT NULL DEFAULT 0, cache_hits INTEGER NOT NULL DEFAULT 0, stale INTEGER NOT NULL DEFAULT 0, generation INTEGER NOT NULL DEFAULT 1);
         CREATE INDEX IF NOT EXISTS jobs_session ON jobs(session, created);
         CREATE INDEX IF NOT EXISTS jobs_queue ON jobs(status, created);
+        CREATE TABLE IF NOT EXISTS proof_tasks(id TEXT PRIMARY KEY, job TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE, paper TEXT NOT NULL, target TEXT NOT NULL, fingerprint TEXT NOT NULL, context TEXT NOT NULL, status TEXT NOT NULL, result TEXT, error TEXT, created REAL NOT NULL, UNIQUE(job,fingerprint));
+        CREATE INDEX IF NOT EXISTS proof_queue ON proof_tasks(status,created);
         CREATE TABLE IF NOT EXISTS cache(key TEXT PRIMARY KEY, value TEXT NOT NULL, created REAL NOT NULL);
         CREATE TABLE IF NOT EXISTS revisions(id TEXT PRIMARY KEY, job TEXT NOT NULL, paper TEXT NOT NULL, before_json TEXT NOT NULL, after_json TEXT NOT NULL, created REAL NOT NULL);
         CREATE TABLE IF NOT EXISTS learning_progress(job TEXT NOT NULL, paper TEXT NOT NULL, node TEXT NOT NULL, fingerprint TEXT NOT NULL, status TEXT NOT NULL, updated REAL NOT NULL, PRIMARY KEY(job,paper,node));

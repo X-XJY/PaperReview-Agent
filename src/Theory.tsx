@@ -36,6 +36,7 @@ export default function Theory({
   onUpdate: (job: Job) => void;
   onTutor: (seed: TutorSeed) => void;
 }) {
+  const [readingMode,setReadingMode] = useState<"auto"|"theory"|"method">("auto");
   const [target, setTarget] = useState("");
   const [edit, setEdit] = useState<{
     paper: Paper;
@@ -104,6 +105,10 @@ export default function Theory({
           </p>
         </details>
       </div>
+      <div className="reading-mode" role="group" aria-label="论文阅读模式">
+        <strong>阅读模式</strong>{([['auto','自动选择'],['theory','理论与证明'],['method','方法与实验']] as const).map(([value,label])=><button key={value} aria-pressed={readingMode===value} onClick={()=>setReadingMode(value)}>{label}</button>)}
+        <p>自动模式根据已提取内容选择：有正式结果时阅读理论；没有时阅读方法。可随时切换，不需要重新分析论文。</p>
+      </div>
       {isDemo && (
         <p className="theory-demo-note">
           教学演示：以下定义、引理、定理及证明为原创数学样例，用于体验证据溯源和学习路径，不是真实论文成果，也不证明对应方法的实际效果。
@@ -111,6 +116,9 @@ export default function Theory({
       )}
       {papers.map((paper) => {
         const theory = paper.theory;
+        const hasTheory=Boolean(theory?.nodes.length);
+        const hasMethod=paper.extraction.methods.some(c=>c.status==='supported');
+        const mode=readingMode==='auto'?(hasTheory?'theory':'method'):readingMode;
         const selected = theory?.nodes.find(
           (n) => paper.id + ":" + n.id === target,
         );
@@ -121,6 +129,7 @@ export default function Theory({
             className={`theory-paper${!theory?.nodes.length ? " theory-paper-empty" : ""}`}
           >
             <h3>{paper.metadata.title}</h3>
+            <p className="paper-mode-label">{hasTheory&&hasMethod?'已提取理论与方法内容':hasTheory?'已提取正式理论内容':'以方法与实验阅读为主'} · 当前：{mode==='theory'?'理论与证明':'方法与实验'}<br/><small>依据当前抽取结果推荐，不是对论文类型或理论价值的最终判断。</small></p>
             {theory?.status === "pending" && (
               <p role="status">
                 人工修改已保存。请点击页面的重新推导，核验后将重建证明依赖和学习路径。
@@ -153,7 +162,11 @@ export default function Theory({
                 补充理论结果
               </button>
             )}
-            {!theory ? (
+            {mode==='method' ? <>
+              <MethodStudy paper={paper} jobId={jobId} onEvidence={onEvidence} onTutor={onTutor}/>
+              <h4>实验与评价依据</h4>
+              {paper.extraction.evaluations.length?paper.extraction.evaluations.map((e,i)=><article className="proof-step" key={i}><strong>{e.dataset} · {e.metric} {e.value||''}</strong><p>{e.setting}</p><button disabled={!e.evidence_ids.length} onClick={()=>onEvidence(e.evidence_ids)}>查看实验原文</button></article>):<p>当前未提取到明确的数据集与评价指标。</p>}
+            </> : !theory ? (
               <>
                 <p>此分析尚未包含正式理论结果，以下可先学习已有的方法内容。</p>
                 <MethodStudy
@@ -285,7 +298,7 @@ export default function Theory({
                     请助教带我学习这条路径
                   </button>
                 )}
-                {selected && theory.status !== "pending" && <ProofWalkthrough paper={paper} target={selected.id} onEvidence={onEvidence} onTutor={onTutor}/>}
+                {selected && theory.status !== "pending" && <ProofWalkthrough jobId={jobId} paper={paper} target={selected.id} onEvidence={onEvidence} onTutor={onTutor}/>}
                 <div className="theory-nodes">
                   {theory.nodes.map((n) => (
                     <article key={n.id}>

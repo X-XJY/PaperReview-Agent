@@ -129,7 +129,9 @@ def delete_job(job_id: str, request: Request):
             raise HTTPException(404,'未找到任务。')
         if row['status'] in ('queued','running') or conn.execute("SELECT 1 FROM tutor_tasks t JOIN tutor_threads h ON h.id=t.thread WHERE h.job=? AND t.status IN ('queued','running')",(job_id,)).fetchone():
             raise HTTPException(409,'任务或助教仍在处理中，请完成后再删除。')
-        conn.execute('DELETE FROM tutor_tasks WHERE thread IN (SELECT id FROM tutor_threads WHERE job=?)',(job_id,))
+        if conn.execute("SELECT 1 FROM proof_tasks WHERE job=? AND status IN ('queued','running')",(job_id,)).fetchone():
+            raise HTTPException(409,'证明讲解仍在处理中，请完成后再删除。')
+        conn.execute('DELETE FROM tutor_tasks WHERE thread IN (SELECT id FROM tutor_threads WHERE job=?)' ,(job_id,))
         conn.execute('DELETE FROM tutor_threads WHERE job=?',(job_id,))
         conn.execute('DELETE FROM revisions WHERE job=?',(job_id,))
         conn.execute('DELETE FROM learning_progress WHERE job=?',(job_id,))
@@ -332,6 +334,8 @@ def update_learning(job_id: str, paper_id: str, value: learning.LearningEdit, re
 
 from .tutor import router as tutor_router
 app.include_router(tutor_router)
+from .proof import router as proof_router
+app.include_router(proof_router)
 
 if Path('dist').exists():
     app.mount('/',StaticFiles(directory='dist',html=True),name='frontend')

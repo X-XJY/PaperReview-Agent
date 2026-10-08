@@ -6,6 +6,7 @@ import time
 from . import db
 from .pipeline import run
 from .cleanup import cleanup
+from .proof import run_next
 
 def heartbeat():
     while True:
@@ -18,6 +19,7 @@ def main():
     # Deployment contract: a single worker owns the queue. Reclaim work left by its prior process.
     with db.connection() as conn:
         conn.execute("UPDATE jobs SET status='queued',stage='恢复中' WHERE status='running'")
+        conn.execute("UPDATE proof_tasks SET status='queued' WHERE status='running'")
     threading.Thread(target=heartbeat,daemon=True).start()
     last_cleanup=0
     while True:
@@ -30,6 +32,8 @@ def main():
             if row:
                 conn.execute("UPDATE jobs SET status='running',stage='准备处理',updated=? WHERE id=?",(time.time(),row['id']))
         if not row:
+            if run_next():
+                continue
             time.sleep(1)
             continue
         job = db.get(row['id'])

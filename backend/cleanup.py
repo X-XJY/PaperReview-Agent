@@ -16,6 +16,8 @@ def cleanup():
                 continue
             if conn.execute("SELECT 1 FROM tutor_tasks t JOIN tutor_threads h ON h.id=t.thread WHERE h.session=? AND t.status IN ('queued','running')",(sid,)).fetchone():
                 continue
+            if conn.execute("SELECT 1 FROM proof_tasks p JOIN jobs j ON j.id=p.job WHERE j.session=? AND p.status IN ('queued','running')",(sid,)).fetchone():
+                continue
             conn.execute('DELETE FROM tutor_tasks WHERE thread IN (SELECT id FROM tutor_threads WHERE session=?)',(sid,))
             conn.execute('DELETE FROM tutor_threads WHERE session=?',(sid,))
             conn.execute('DELETE FROM revisions WHERE job IN (SELECT id FROM jobs WHERE session=?)',(sid,))
