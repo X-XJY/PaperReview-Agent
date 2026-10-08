@@ -1663,3 +1663,13 @@ select {
 .method-step-text { margin:8px 0; line-height:1.9; color:#213d53; }
 .method-study .learning-step>button { padding:8px 12px; border:1px solid #8fadb7; border-radius:7px; color:#155e68; cursor:pointer; }
 .method-study-tutor { cursor:pointer; background:#176c77; color:white; }
+
+.brand-mark img { display:block; border-radius:9px; }
+.drawer-header-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.evidence-fullscreen-toggle { display:inline-flex; gap:6px; align-items:center; border:1px solid #9bb8c1; background:#edf6f8; color:#155e68; padding:9px 11px; border-radius:8px; font-weight:600; cursor:pointer; min-height:40px; }
+.evidence-fullscreen-toggle:hover { background:#d9edf1; }
+.evidence-fullscreen-toggle:focus-visible { outline:3px solid #258ba1; outline-offset:2px; }
+.evidence-drawer.evidence-fullscreen { left:0; width:100%; max-width:100%; padding:24px clamp(20px,7vw,110px); }
+.evidence-fullscreen .drawer-header { position:sticky; top:-24px; background:white; padding:16px 0; z-index:2; }
+.evidence-fullscreen .evidence-card { max-width:1200px; margin-left:auto; margin-right:auto; }
+@media(max-width:600px) { .drawer-header { gap:10px; } .drawer-header h2 { font-size:18px; } .evidence-drawer.evidence-fullscreen { padding:18px; } .evidence-fullscreen .drawer-header { top:-18px; } }

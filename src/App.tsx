@@ -33,6 +33,8 @@ import {
   Loader2,
   ExternalLink,
   History,
+  Maximize2,
+  Minimize2,
   FolderOpen,
 } from "lucide-react";
 import { api, localDemo, download, localReport } from "./api";
@@ -97,12 +99,13 @@ export default function App() {
   const [config, setConfig] = useState<Config | null>(null),
     [connected, setConnected] = useState(false),
     [job, setJob] = useState<Job | null>(null);
-  const [tab, setTab] = useState("matrix"),
+  const [tab, setTab] = useState("theory"),
     [query, setQuery] = useState(""),
     [filter, setFilter] = useState("all"),
     [tags, setTags] = useState<Tag[]>(
       flatten([...ontologyData.tasks, ...ontologyData.methods]),
     );
+  const [evidenceFullscreen,setEvidenceFullscreen]=useState(false);
   const [evidenceIds, setEvidenceIds] = useState<string[] | null>(null),
     [uploadOpen, setUploadOpen] = useState(false),
     [files, setFiles] = useState<File[]>([]),
@@ -198,6 +201,7 @@ export default function App() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+  useEffect(()=>{if(evidenceIds===null)setEvidenceFullscreen(false)},[evidenceIds===null]);
   const result = job?.result,
     papers = result?.papers || [],
     synthesis = result?.synthesis;
@@ -244,7 +248,7 @@ export default function App() {
       } else setJob(await localDemo());
       setQuery("");
       setFilter("all");
-      setTab("matrix");
+      setTab("theory");
       setNotice("已打开原创教学样例，非真实论文分析。");
     });
   const upload = () =>
@@ -444,7 +448,7 @@ export default function App() {
         <button className="sidebar-collapse icon-button" aria-label="隐藏侧边栏" title="隐藏侧边栏" onClick={()=>setSidebarHidden(true)}><PanelLeftClose size={20}/></button>
         <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
           <div className="brand-mark">
-            <Layers size={25} />
+            <img src="/icon.svg" width={36} height={36} alt=""/>
           </div>
           <div>
             <strong>研脉</strong>
@@ -1174,7 +1178,7 @@ export default function App() {
         <>
           <div className="drawer-scrim" onClick={() => setEvidenceIds(null)} />
           <aside
-            className="evidence-drawer"
+            className={"evidence-drawer"+(evidenceFullscreen?" evidence-fullscreen":"")}
             role="dialog"
             aria-modal="true"
             aria-label="原文证据"
@@ -1184,13 +1188,14 @@ export default function App() {
                 <span className="eyebrow">SOURCE EVIDENCE</span>
                 <h2>让结论回到原文</h2>
               </div>
+              <div className="drawer-header-actions"><button className="evidence-fullscreen-toggle" aria-label={evidenceFullscreen?'退出原文证据全屏':'全屏查看原文证据'} aria-pressed={evidenceFullscreen} onClick={()=>setEvidenceFullscreen(v=>!v)}>{evidenceFullscreen?<Minimize2 size={18}/>:<Maximize2 size={18}/>}<span>{evidenceFullscreen?'退出全屏':'全屏'}</span></button>
               <button
                 className="icon-button"
                 aria-label="关闭证据"
                 onClick={() => setEvidenceIds(null)}
               >
                 <X size={22} />
-              </button>
+              </button></div>
             </div>
             {result?.mode === "demo" && (
               <div className="inline-warning">
