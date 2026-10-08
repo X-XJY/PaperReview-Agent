@@ -118,7 +118,7 @@ export default function Theory({
         </details>
       </div>
       <div className="reading-mode" role="group" aria-label="论文阅读模式">
-        <strong>阅读模式</strong>{([['auto','自动选择'],['theory','理论与证明'],['method','方法与实验']] as const).map(([value,label])=><button key={value} aria-pressed={readingMode===value} onClick={()=>setReadingMode(value)}>{label}</button>)}
+        <strong>阅读模式</strong><div className="reading-segments">{([['auto','自动选择'],['theory','理论与证明'],['method','方法与实验']] as const).map(([value,label])=><button key={value} aria-pressed={readingMode===value} onClick={()=>setReadingMode(value)}>{label}</button>)}</div>
         <p>自动模式根据已提取内容选择：有正式结果时阅读理论；没有时阅读方法。可随时切换，不需要重新分析论文。</p>
       </div>
       <div className="reading-controls">

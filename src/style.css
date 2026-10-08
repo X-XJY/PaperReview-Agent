@@ -1694,3 +1694,19 @@ select {
 .structured-proof summary {cursor:pointer;font-weight:600;color:#365ac5;}
 
 .reading-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:18px;border:1px solid #d8e2ef;border-radius:14px;margin:18px 0;background:#f8faff}.reading-controls label{display:flex;gap:10px;align-items:center;min-width:0;flex:1}.reading-controls select{max-width:100%;min-width:0;flex:1}.reading-controls p{flex-basis:100%;margin:0}.reading-controls button[aria-pressed=true]{background:#355bac;color:white;border-color:#355bac}.theory-catalog{margin:20px 0}.theory-catalog>summary{cursor:pointer;padding:14px;background:#f3f6fb;border-radius:10px;font-weight:600}.reading-quick .relation-list{display:none}[id^="proof-"],[id^="goal-"]{scroll-margin-top:24px}
+
+/* Reading switches share one deliberate segmented-control treatment. */
+.reading-mode{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px;padding:18px 20px;background:#f8faff;border-color:#dce4f2;border-radius:16px;}
+.reading-mode>strong{font-size:14px;color:#33445e;}
+.reading-mode p{flex-basis:100%;margin:0;line-height:1.7;}
+.reading-segments,.reading-controls [aria-label="阅读深度"]{display:inline-flex;gap:4px;padding:4px;background:#eaf0f8;border:1px solid #dde5f0;border-radius:12px;}
+.reading-segments button,.reading-controls [aria-label="阅读深度"] button{appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 16px;margin:0;border:1px solid transparent;border-radius:9px;background:transparent;color:#52647c;font-size:14px;font-weight:500;line-height:1.4;white-space:nowrap;cursor:pointer;transition:background .16s,color .16s,box-shadow .16s;}
+.reading-segments button:hover,.reading-controls [aria-label="阅读深度"] button:hover{background:#dfe7f4;color:#263f6d;}
+.reading-segments button[aria-pressed="true"],.reading-controls [aria-label="阅读深度"] button[aria-pressed="true"]{background:#fff;color:#385cc3;border-color:#d9e2f5;font-weight:600;box-shadow:0 2px 6px #263f6d12;}
+.reading-segments button:focus-visible,.reading-controls [aria-label="阅读深度"] button:focus-visible{outline:2px solid #526ee0;outline-offset:2px;}
+.reading-controls{padding:18px 20px;border-color:#dce4f2;border-radius:16px;gap:14px 18px;}
+.reading-controls label{font-size:14px;font-weight:500;color:#33445e;gap:14px;}
+.reading-controls select{min-height:46px;padding:10px 14px;border:1px solid #dce4f0;border-radius:11px;background:#fff;color:#425673;}
+.reading-controls select:hover{border-color:#aabce2;}
+@media(max-width:640px){.reading-controls label{flex-basis:100%;flex-wrap:wrap;}.reading-controls select{width:100%;flex-basis:100%;}.reading-segments button,.reading-controls [aria-label="阅读深度"] button{padding:8px 12px;}.reading-controls [aria-label="阅读深度"]{width:100%;}.reading-controls [aria-label="阅读深度"] button{flex:1;}}
+@media(prefers-reduced-motion:reduce){.reading-segments button,.reading-controls [aria-label="阅读深度"] button{transition:none;}}
