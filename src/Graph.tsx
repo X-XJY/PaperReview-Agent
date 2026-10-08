@@ -3,10 +3,11 @@ import { ZoomIn, ZoomOut, RotateCcw, Maximize2, Minimize2 } from "lucide-react";
 import * as echarts from "echarts/core";
 import { GraphChart } from "echarts/charts";
 import { TooltipComponent } from "echarts/components";
-import { CanvasRenderer } from "echarts/renderers";
+import { CanvasRenderer, SVGRenderer } from "echarts/renderers";
 import type { Paper, Synthesis } from "./types";
 import { dependencyPositions } from "./graphLayout";
-echarts.use([GraphChart, TooltipComponent, CanvasRenderer]);
+import { relatedNodes } from "./graphReading";
+echarts.use([GraphChart, TooltipComponent, CanvasRenderer, SVGRenderer]);
 export default function Graph({
   papers,
   synthesis,
@@ -14,6 +15,8 @@ export default function Graph({
   ariaLabel = "方法演进力导向图；下方另有可访问的关系列表",
   highlightIds,
   allowLayeredLayout = false,
+  nodeKinds,
+  targetId,
 }: {
   papers: Paper[];
   synthesis: Synthesis | null;
@@ -21,6 +24,8 @@ export default function Graph({
   ariaLabel?: string;
   highlightIds?: string[];
   allowLayeredLayout?: boolean;
+  nodeKinds?: Record<string, string>;
+  targetId?: string;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof echarts.init> | null>(null);
@@ -29,9 +34,22 @@ export default function Graph({
   const shell = useRef<HTMLDivElement>(null);
   const expandButton = useRef<HTMLButtonElement>(null);
   const [expanded, setExpanded] = useState(false);
+  const [exportUrl, setExportUrl] = useState<{url:string;format:string}|null>(null);
+  useEffect(()=>()=>{if(exportUrl) URL.revokeObjectURL(exportUrl.url);},[exportUrl]);
   const [zoomPercent, setZoomPercent] = useState(100);
   const [layered, setLayered] = useState(allowLayeredLayout);
-  const ids = new Set(papers.map((p) => p.id));
+  const [focusId, setFocusId] = useState("");
+  const [onlyTarget, setOnlyTarget] = useState(false);
+  const focusHandler = useRef(setFocusId);
+  const allRelations = synthesis?.relations || [];
+  const traverse = (start:string, reverse:boolean) => relatedNodes(start, allRelations, reverse);
+  const upstream = traverse(focusId, true), downstream = traverse(focusId, false);
+  const visible = targetId && onlyTarget ? new Set([targetId, ...traverse(targetId, true)]) : null;
+  const shownPapers = papers.filter(p => !visible || visible.has(p.id));
+  const kindLabels: Record<string,string> = {definition:"定义", assumption:"假设", lemma:"引理", theorem:"定理", proposition:"命题", corollary:"推论"};
+  const kindColors: Record<string,string> = {definition:"#3371ac", assumption:"#7a6b52", lemma:"#675a9a", theorem:"#b07835", proposition:"#416ba0", corollary:"#ae5977"};
+  const focused = papers.find(p=>p.id===focusId);
+  const ids = new Set(shownPapers.map((p) => p.id));
   const positions = allowLayeredLayout
     ? dependencyPositions(
         Array.from(ids),
@@ -42,10 +60,12 @@ export default function Graph({
     : null;
   useEffect(() => {
     if (!container.current) return;
-    const chart = echarts.init(container.current);
+    const chart = echarts.init(container.current, undefined, {renderer: "svg"});
     chartRef.current = chart;
     chart.on("click", (p: unknown) => {
-      const data = (p as { data?: { evidence?: string[] } }).data;
+      const event = p as {dataType?: string; data?: {id?: string; evidence?: string[]}};
+      const data = event.data;
+      if (event.dataType === "node" && data?.id) { focusHandler.current(data.id); return; }
       if (data?.evidence) evidenceHandler.current(data.evidence);
     });
     chart.on("graphroam", () => {
@@ -72,11 +92,12 @@ export default function Graph({
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
-    const ids = new Set(papers.map((p) => p.id));
+    const ids = new Set(shownPapers.map((p) => p.id));
     const relations = (synthesis?.relations || []).filter(
       (r) => ids.has(r.source) && ids.has(r.target),
     );
     chart.setOption({
+      animation: false,
       tooltip: { trigger: "item", renderMode: "richText" },
       series: [
         {
@@ -98,14 +119,16 @@ export default function Graph({
           },
           lineStyle: { color: "#829bb0", width: 2, curveness: 0.12 },
           emphasis: { focus: "adjacency" },
-          data: papers.map((p, i) => ({
+          data: shownPapers.map((p, i) => ({
             id: p.id,
             name: p.extraction.method_name,
             ...(layered && positions ? positions[p.id] : {}),
             symbolSize: allowLayeredLayout && papers.length > 4 ? 38 : Math.min(52 + i * 3, 68),
             itemStyle: {
-              opacity: !highlightIds || highlightIds.includes(p.id) ? 1 : 0.25,
-              color: ["#1b6870", "#3371ac", "#9a7544", "#675a9a", "#537c65"][
+              opacity: focusId ? (p.id===focusId || upstream.has(p.id) || downstream.has(p.id) ? 1 : 0.2) : (!highlightIds || highlightIds.includes(p.id) ? 1 : 0.25),
+              borderColor: p.id===focusId ? "#172d45" : upstream.has(p.id) ? "#436de3" : downstream.has(p.id) ? "#df8a35" : "transparent",
+              borderWidth: focusId && (p.id===focusId || upstream.has(p.id) || downstream.has(p.id)) ? 4 : 0,
+              color: (nodeKinds && kindColors[nodeKinds[p.id]]) || ["#1b6870", "#3371ac", "#9a7544", "#675a9a", "#537c65"][
                 i % 5
               ],
             },
@@ -135,8 +158,17 @@ export default function Graph({
           })),
         },
       ],
-    });
-  }, [papers, synthesis, highlightIds, layered]);
+    }, {replaceMerge: ["series"]});
+  }, [papers, synthesis, highlightIds, layered, focusId, onlyTarget, targetId, nodeKinds]);
+  function exportGraph(format: "svg" | "png") {
+    const svg = container.current?.querySelector("svg"); if (!svg) return;
+    const markup = new XMLSerializer().serializeToString(svg);
+    const blob = new Blob([markup], {type:"image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const download = (href:string) => { setExportUrl({url:href,format}); const a=document.createElement("a"); a.href=href; a.download=`研脉-知识图谱.${format}`; a.click(); };
+    if (format==="svg") { download(url); return; }
+    const image = new Image(); image.onload=()=> { const canvas=document.createElement("canvas"); canvas.width=svg.clientWidth*2; canvas.height=svg.clientHeight*2; const ctx=canvas.getContext("2d")!; ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);canvas.toBlob(b=>{if(b){const u=URL.createObjectURL(b);download(u);}},"image/png");URL.revokeObjectURL(url); }; image.onerror=()=>URL.revokeObjectURL(url); image.src=url;
+  }
   function zoom(factor: number) {
     const chart = chartRef.current;
     if (!chart) return;
@@ -181,9 +213,10 @@ export default function Graph({
       <div className="graph-toolbar" role="group" aria-label="图谱查看工具">
         <span>
           {layered && positions
-            ? "前提在上 · 结果在下 · 点击查看依据"
-            : "拖动节点 · 滚轮缩放 · 点击查看依据"}
+            ? "前提在上 · 结果在下 · 点击节点看详情"
+            : "拖动节点 · 滚轮缩放 · 点击节点看详情"}
         </span>
+        <select aria-label="查看图谱节点详情" value={focusId} onChange={e=>setFocusId(e.target.value)}><option value="">选择节点查看详情</option>{shownPapers.map(p=><option key={p.id} value={p.id}>{p.extraction.method_name}</option>)}</select>
         {allowLayeredLayout && (
           <button
             type="button"
@@ -199,6 +232,9 @@ export default function Graph({
             {layered && positions ? "力导向布局" : "分层布局"}
           </button>
         )}
+        {allowLayeredLayout && <button disabled={!targetId} aria-pressed={onlyTarget} onClick={()=>setOnlyTarget(!onlyTarget)}>{onlyTarget ? "显示完整图谱" : "只看目标依赖"}</button>}
+        <button onClick={()=>exportGraph("svg")}>导出 SVG</button>
+        <button onClick={()=>exportGraph("png")}>导出 PNG</button>
         <output aria-label="图谱缩放比例" aria-live="polite">
           {zoomPercent}%
         </output>
@@ -241,6 +277,9 @@ export default function Graph({
           {expanded ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
         </button>
       </div>
+      {exportUrl && <p role="status">图片已生成：<a href={exportUrl.url} download={`研脉-知识图谱.${exportUrl.format}`}>点击保存 {exportUrl.format.toUpperCase()} 图片</a></p>}
+      {nodeKinds && <div className="graph-legend">{Object.entries(kindLabels).map(([k,label])=><span key={k}><i style={{background:kindColors[k]}}/>{label}</span>)}<span>蓝色描边：上游前提 · 橙色描边：下游结果</span></div>}
+      {focused && <div className="graph-detail"><strong>{focused.extraction.method_name}</strong><p>{focused.extraction.methods[0]?.text}</p><p>上游 {upstream.size} 项 · 下游 {downstream.size} 项</p><button onClick={()=>evidenceHandler.current(focused.extraction.methods.flatMap(c=>c.evidence_ids))}>查看节点原文依据</button><button onClick={()=>setFocusId("")}>清除高亮</button></div>}
       <div
         ref={container}
         className="graph"

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Paper, Job } from "./types";
 import EvidenceText from "./LazyEvidenceText";
 import Graph from "./Graph";
+import ProofWalkthrough from "./ProofWalkthrough";
 import { BookOpen, ChevronDown } from "lucide-react";
 import MethodStudy from "./MethodStudy";
 import LearningPath from "./LearningPath";
@@ -284,6 +285,7 @@ export default function Theory({
                     请助教带我学习这条路径
                   </button>
                 )}
+                {selected && theory.status !== "pending" && <ProofWalkthrough paper={paper} target={selected.id} onEvidence={onEvidence} onTutor={onTutor}/>}
                 <div className="theory-nodes">
                   {theory.nodes.map((n) => (
                     <article key={n.id}>
@@ -329,6 +331,8 @@ export default function Theory({
                 {theory.status !== "pending" && (
                   <Graph
                     allowLayeredLayout
+                    targetId={selected?.id}
+                    nodeKinds={Object.fromEntries(theory.nodes.map(n=>[n.id,n.kind]))}
                     highlightIds={path}
                     ariaLabel="理论证明依赖图；箭头由前提指向结果"
                     papers={theory.nodes.map((n) => ({
