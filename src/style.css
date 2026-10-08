@@ -1654,3 +1654,12 @@ select {
 @media(max-width:600px) { .evidence-actions .evidence-action { width:100%; } .theory-help summary { padding:14px; } }
 
 .theory-view > .view-note { display:block; }
+
+.method-study { margin:16px 0; padding:16px; border:1px solid #cadfe2; border-radius:10px; background:#fff; }
+.method-study h4 { color:#176c77; margin:0 0 10px; }
+.method-study>p { line-height:1.8; color:#536a7a; }
+.method-study>label { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.method-study select,.method-study-tutor { padding:10px 14px; border:1px solid #94b7bc; border-radius:8px; background:white; color:#155e68; }
+.method-step-text { margin:8px 0; line-height:1.9; color:#213d53; }
+.method-study .learning-step>button { padding:8px 12px; border:1px solid #8fadb7; border-radius:7px; color:#155e68; cursor:pointer; }
+.method-study-tutor { cursor:pointer; background:#176c77; color:white; }

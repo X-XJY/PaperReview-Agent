@@ -3,6 +3,7 @@ import type { Paper, Job } from "./types";
 import EvidenceText from "./LazyEvidenceText";
 import Graph from "./Graph";
 import { BookOpen, ChevronDown } from "lucide-react";
+import MethodStudy from "./MethodStudy";
 import LearningPath from "./LearningPath";
 import { api } from "./api";
 import type { TutorSeed } from "./Tutor";
@@ -77,9 +78,16 @@ export default function Theory({
   return (
     <div className="theory-view">
       <div className="view-note">
-        先选一个想弄懂的结论，再按前置知识顺序学习。这里展示的是论文的理论陈述及其证明关系。
+        先选一个想弄懂的结论，再按前置知识顺序学习。有正式理论结果时展示证明关系；没有时提供有原文依据的方法学习路线。
         <details className="theory-help">
-          <summary><BookOpen size={21}/><span><strong>第一次使用？了解这些内容与学习目标</strong><small>点击查看使用指南</small></span><ChevronDown size={20} className="theory-help-chevron"/></summary>
+          <summary>
+            <BookOpen size={21} />
+            <span>
+              <strong>第一次使用？了解这些内容与学习目标</strong>
+              <small>点击查看使用指南</small>
+            </span>
+            <ChevronDown size={20} className="theory-help-chevron" />
+          </summary>
           <p>
             定义：约定术语或计算方式。假设：结论成立所需的条件。引理：证明大结论时使用的小结论。定理／命题：在指定条件下得到的结论。推论：从已有结论进一步得到的结果。
           </p>
@@ -145,7 +153,15 @@ export default function Theory({
               </button>
             )}
             {!theory ? (
-              <p>此分析尚未包含理论结果，可点击重新推导补充分析。</p>
+              <>
+                <p>此分析尚未包含正式理论结果，以下可先学习已有的方法内容。</p>
+                <MethodStudy
+                  paper={paper}
+                  jobId={jobId}
+                  onEvidence={onEvidence}
+                  onTutor={onTutor}
+                />
+              </>
             ) : !theory.nodes.length ? (
               <div className="theory-empty-content">
                 <p>
@@ -153,10 +169,16 @@ export default function Theory({
                     ? "当前没有保留的理论节点，重新推导后会更新结果。"
                     : isDemo
                       ? "这是旧版教学样例，尚未配置理论演示。点击页面顶部的“打开教学示例”可加载完整示例。"
-                      : "本次分析未提取到可由原文支持的定义、假设、引理、定理或命题。"}
+                      : "本次未提取到正式理论结果，已转为展示有原文依据的方法学习内容。"}
                 </p>
                 {!isDemo && theory.status !== "pending" && (
                   <>
+                    <MethodStudy
+                      paper={paper}
+                      jobId={jobId}
+                      onEvidence={onEvidence}
+                      onTutor={onTutor}
+                    />
                     <p className="muted">
                       这不代表论文没有研究价值，也不能据此断定原文没有理论结果。实验型论文可能侧重方法与评测；如果原文确有明确理论陈述，可查看依据并手动补充。
                     </p>

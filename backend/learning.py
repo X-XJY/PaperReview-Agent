@@ -11,12 +11,29 @@ class LearningEdit(BaseModel):
     fingerprint: str
     status: Literal['not_started', 'review', 'mastered']
 
+def method_nodes(paper):
+    """Reading steps from supported author claims; these are not formal results."""
+    evidence={e['id'] for e in paper.get('evidence',[]) if e['paper_id']==paper['id']}
+    nodes=[]
+    for key,label in [('methods','方法设计'),('advantages','优势与证据'),('limitations','作者局限')]:
+        seen=set()
+        for claim in paper.get('extraction',{}).get(key,[]):
+            refs=claim.get('evidence_ids',[])
+            text=claim.get('text','').strip()
+            marker=''.join(text.split())
+            if claim.get('status')!='supported' or claim.get('kind')!='author_statement' or not text or not refs or not set(refs)<=evidence or marker in seen:
+                continue
+            seen.add(marker)
+            nodes.append({'id':'method-study:'+key+':'+claim['id'],'kind':key,'label':label+' '+str(len(seen)),
+                          'statement':text,'conditions':[],'evidence_ids':refs})
+    return nodes
+
 def nodes_for(job, paper_id):
     paper = next((p for p in (job.get('result') or {}).get('papers', []) if p['id'] == paper_id), None)
     if paper is None:
         raise HTTPException(404, '未找到论文。')
     theory = paper.get('theory') or {}
-    return theory.get('nodes', []), theory.get('status') == 'pending'
+    return theory.get('nodes', []) or method_nodes(paper), theory.get('status') == 'pending'
 
 def fingerprint(node):
     return db.digest({key: node.get(key) for key in ('kind', 'label', 'statement', 'conditions', 'evidence_ids')})
@@ -32,9 +49,9 @@ def save(job, paper_id, value):
     nodes, pending = nodes_for(job, paper_id)
     node = next((n for n in nodes if n['id'] == value.node_id), None)
     if node is None:
-        raise HTTPException(404, '未找到理论节点。')
+        raise HTTPException(404, '未找到学习节点。')
     if pending or fingerprint(node) != value.fingerprint:
-        raise HTTPException(409, '理论内容已更新，请刷新学习路径后再标记。')
+        raise HTTPException(409, '学习内容已更新，请刷新学习路径后再标记。')
     with db.connection() as conn:
         conn.execute('INSERT OR REPLACE INTO learning_progress VALUES(?,?,?,?,?,?)',
             (job['id'], paper_id, node['id'], value.fingerprint, value.status, time.time()))

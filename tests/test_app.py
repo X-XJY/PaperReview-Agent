@@ -203,3 +203,28 @@ def test_teaching_pdf_matches_evidence_pages(client):
             other.get('/api/session')
             assert other.get(url).status_code==404
     assert client.get(f"/api/jobs/{job['id']}/papers/../../private/pdf").status_code==404
+
+
+def test_method_learning_uses_only_supported_author_evidence_and_invalidates_edits(client):
+    from backend.learning import method_nodes
+    job=demo(client)
+    paper=job['result']['papers'][0]
+    paper['theory']['nodes']=[]
+    base=paper['extraction']['methods'][0]
+    paper['extraction']['methods'] += [dict(base,id='duplicate'),dict(base,id='inferred',kind='inference'),dict(base,id='unverified',status='unverified'),dict(base,id='foreign',evidence_ids=['unknown'])]
+    nodes=method_nodes(paper)
+    assert len(nodes)==3
+    assert [n['kind'] for n in nodes]==['methods','advantages','limitations']
+    assert all(n['id'].startswith('method-study:') for n in nodes)
+    db.update(job['id'],result=json.dumps(job['result'],ensure_ascii=False))
+    url=f"/api/jobs/{job['id']}/papers/{paper['id']}/learning"
+    progress=client.get(url).json()
+    assert set(progress['nodes'])=={n['id'] for n in nodes}
+    node=nodes[0]['id']
+    body={'node_id':node,'fingerprint':progress['nodes'][node]['fingerprint'],'status':'mastered'}
+    assert client.patch(url,headers=HEADERS,json=body).status_code==200
+    assert client.get(url).json()['nodes'][node]['status']=='mastered'
+    paper['extraction']['methods'][0]['text']+=' edited'
+    db.update(job['id'],result=json.dumps(job['result'],ensure_ascii=False))
+    assert client.get(url).json()['nodes'][node]['status']=='not_started'
+    assert client.patch(url,headers=HEADERS,json=body).status_code==409

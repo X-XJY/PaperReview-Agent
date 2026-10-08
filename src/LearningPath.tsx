@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type { Paper } from "./types";
-type Node = NonNullable<Paper["theory"]>["nodes"][number];
+import type { StudyNode as Node } from "./studyNodes";
+import EvidenceText from "./LazyEvidenceText";
 type State = "not_started" | "review" | "mastered";
 type Progress = {
   pending: boolean;
@@ -17,17 +18,20 @@ export default function LearningPath({
   paper,
   path,
   onEvidence,
+  studyNodes,
 }: {
   jobId: string;
   paper: Paper;
   path: string[];
+  studyNodes?: Node[];
   onEvidence: (ids: string[]) => void;
 }) {
   const [progress, setProgress] = useState<Progress | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const generation = useRef(0);
-  const signature = JSON.stringify(paper.theory?.nodes);
+  const availableNodes = studyNodes || paper.theory?.nodes || [];
+  const signature = JSON.stringify(availableNodes);
   const storageKey = "paper-learning-v1:" + paper.id;
   const local = jobId === "local-demo";
   useEffect(() => {
@@ -46,7 +50,7 @@ export default function LearningPath({
         /* Storage is optional. */
       }
       const nodes = Object.fromEntries(
-        (paper.theory?.nodes || []).map((n) => {
+        availableNodes.map((n) => {
           const fingerprint = JSON.stringify(n);
           const old = stored[n.id];
           return [
@@ -113,7 +117,7 @@ export default function LearningPath({
     }
   }
   const nodes = path
-    .map((id) => paper.theory?.nodes.find((n) => n.id === id))
+    .map((id) => availableNodes.find((n) => n.id === id))
     .filter((n): n is Node => !!n);
   const mastered = nodes.filter(
     (n) => progress?.nodes[n.id]?.status === "mastered",
@@ -143,8 +147,13 @@ export default function LearningPath({
             }
           >
             <button onClick={() => onEvidence(n.evidence_ids)}>
-              {n.label}
+              {n.label}{studyNodes&&" · 查看原文"}
             </button>
+            {studyNodes && (
+              <div className="method-step-text">
+                <EvidenceText text={n.statement} />
+              </div>
+            )}
             <label>
               学习状态{" "}
               <select
