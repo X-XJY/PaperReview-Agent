@@ -1631,3 +1631,26 @@ select {
 .graph-shell-expanded { position:fixed; inset:16px; z-index:60; display:flex; flex-direction:column; padding:20px; border-radius:14px; background:#fff; box-shadow:0 0 0 100vmax #12232dcc; }
 .graph-shell-expanded .graph { flex:1; min-height:0; height:auto; }
 @media(max-width:600px) { .graph-shell-expanded { inset:8px; padding:12px; } .graph-toolbar span { flex-basis:100%; } }
+
+/* Visible, keyboard-accessible entry points for source and learning actions. */
+.theory-help { margin:16px 0 4px; border:1px solid #89b7bd; border-radius:12px; background:#eef8f9; overflow:hidden; }
+.theory-help summary { display:flex; align-items:center; gap:12px; padding:16px 18px; color:#155e68; cursor:pointer; list-style:none; min-height:64px; }
+.theory-help summary::-webkit-details-marker { display:none; }
+.theory-help summary span { flex:1; }
+.theory-help summary strong { display:block; font-size:15px; line-height:1.6; }
+.theory-help summary small { display:block; font-size:12px; margin-top:3px; color:#3f6d76; }
+.theory-help summary:hover { background:#dceff2; }
+.theory-help[open] .theory-help-chevron { transform:rotate(180deg); }
+.theory-help p { margin:12px 18px; line-height:1.9; color:#345462; }
+.theory-help summary:focus-visible,.evidence-actions .evidence-action:focus-visible { outline:3px solid #258ba1; outline-offset:3px; }
+.evidence-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; padding-top:14px; border-top:1px solid #e0e8ed; }
+.evidence-actions .evidence-action { display:inline-flex; justify-content:center; align-items:center; gap:8px; min-height:44px; padding:11px 14px; border:1px solid #98afb9; border-radius:8px; font-size:13px; font-weight:600; line-height:1.5; text-decoration:none; cursor:pointer; background:#fff; color:#27465d; }
+.evidence-actions .evidence-action-primary { background:#176c77; border-color:#176c77; color:#fff; }
+.evidence-actions .evidence-action-primary:hover { background:#10545e; border-color:#10545e; }
+.evidence-actions .evidence-action-tutor { background:#eef4ff; border-color:#9db7dd; color:#285d96; }
+.evidence-actions .evidence-action-tutor:hover { background:#deebff; }
+.evidence-actions .evidence-action-secondary:hover { background:#eef3f7; }
+.evidence-actions svg { flex-shrink:0; }
+@media(max-width:600px) { .evidence-actions .evidence-action { width:100%; } .theory-help summary { padding:14px; } }
+
+.theory-view > .view-note { display:block; }

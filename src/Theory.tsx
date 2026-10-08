@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Paper, Job } from "./types";
 import EvidenceText from "./LazyEvidenceText";
 import Graph from "./Graph";
+import { BookOpen, ChevronDown } from "lucide-react";
 import LearningPath from "./LearningPath";
 import { api } from "./api";
 import type { TutorSeed } from "./Tutor";
@@ -78,7 +79,7 @@ export default function Theory({
       <div className="view-note">
         先选一个想弄懂的结论，再按前置知识顺序学习。这里展示的是论文的理论陈述及其证明关系。
         <details className="theory-help">
-          <summary>第一次使用？了解这些内容与学习目标</summary>
+          <summary><BookOpen size={21}/><span><strong>第一次使用？了解这些内容与学习目标</strong><small>点击查看使用指南</small></span><ChevronDown size={20} className="theory-help-chevron"/></summary>
           <p>
             定义：约定术语或计算方式。假设：结论成立所需的条件。引理：证明大结论时使用的小结论。定理／命题：在指定条件下得到的结论。推论：从已有结论进一步得到的结果。
           </p>
