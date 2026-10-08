@@ -448,7 +448,7 @@ export default function App() {
         <button className="sidebar-collapse icon-button" aria-label="隐藏侧边栏" title="隐藏侧边栏" onClick={()=>setSidebarHidden(true)}><PanelLeftClose size={20}/></button>
         <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
           <div className="brand-mark">
-            <img src="/icon.svg" width={36} height={36} alt=""/>
+            <img src="/brand-icon.png" width={36} height={36} alt=""/>
           </div>
           <div>
             <strong>研脉</strong>
