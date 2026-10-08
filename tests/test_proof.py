@@ -57,3 +57,15 @@ def test_standalone_proof_selected_without_dependency_edges(client):
     assert any('Proof' in e['text'] for e in data['evidence'])
     definition=next(n for n in paper.theory.nodes if n.kind=='definition')
     with pytest.raises(Exception):proof.context(paper,definition.id)
+
+def test_invalid_reference_gets_one_targeted_repair_before_verification(client):
+    job,paper,node=sample(client);data=proof.context(paper,node.id);calls=[]
+    def caller(stage,payload,schema,job_id):
+        calls.append(stage)
+        if stage=='proof_check':
+            return proof.Checks(checks=[{'id':'s1','status':'supported','reason':'原文支持'}],complete=True,completeness_reason='覆盖完整')
+        overrides={} if 'repair_instruction' in payload else {'prerequisites':['invented-condition']}
+        return proof.Explanation(target_id=node.id,steps=[fake_step(data,**overrides)],missing=[])
+    result=proof.generate(data,job,caller)
+    assert calls==['proof_explain','proof_explain','proof_check']
+    assert result['complete'] and not result['missing']

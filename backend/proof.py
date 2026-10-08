@@ -10,7 +10,7 @@ from . import db, llm
 from .schemas import Strict, Paper
 from .prompts import BASE, PROMPTS
 
-VERSION = 'proof-1'
+VERSION = 'proof-2'
 router = APIRouter(prefix='/api/jobs', tags=['proof'])
 
 class Quote(Strict):
@@ -43,7 +43,7 @@ class Checks(Strict):
     complete: bool
     completeness_reason: str
 
-PROMPTS['proof_explain'] = BASE + '''对给定目标的证明进行完整中文教学拆解。按原文推导顺序输出 steps，每步给出推导公式 formula、所用规则 rule、前提节点 id prerequisites、说明 explanation、关键跳步解释 jump_explanation。引用 citations 必须逐字复制原文的连续片段，并绑定 evidence_id；每步都须引用。原文明示的步骤 kind=source；为解释数学规则而补充的中间推导 kind=teaching_addition，不得伪称作者原文。不补编缺失证明，不扩展条件或结论，不因存在依赖边就假定证明完整。目标不匹配、证明省略、外部结果缺失均在 missing 指出。禁止用相关定理的证明代替目标的证明，禁止凭记忆补论文内容。'''
+PROMPTS['proof_explain'] = BASE + '''对给定目标的证明进行完整中文教学拆解。按原文推导顺序输出 steps，每步给出推导公式 formula、所用规则 rule、前提节点 id prerequisites（只能使用 target 或 prerequisites 中已有节点 id，不能用步骤 id、数学条件名称或自造 id；没有对应节点时用空数组，并在 explanation 写条件）、说明 explanation、关键跳步解释 jump_explanation。引用 citations 必须逐字复制原文的连续片段，并绑定 evidence_id；每步都须引用。原文明示的步骤 kind=source；为解释数学规则而补充的中间推导 kind=teaching_addition，不得伪称作者原文。不补编缺失证明，不扩展条件或结论，不因存在依赖边就假定证明完整。目标不匹配、证明省略、外部结果缺失均在 missing 指出。禁止用相关定理的证明代替目标的证明，禁止凭记忆补论文内容。'''
 PROMPTS['proof_check'] = BASE + '''独立逐项检查讲解是否忠实于目标及其证明原文。每个步骤 id 恰好返回一个 checks。检查公式、使用规则、前提、解释、跳步补充是否有依据且数学推导有效；教学补充必须是从给定前提能推出的说明，不能冒充原文。supported 仅为自动语义核验通过，不是形式化证明。complete 只有原文证明存在且讲解覆盖其全部实质步骤、目标与适用条件一致、没有未解决跳步时才可 true。缺少证据、错误目标、外部结果未给出、作者省略证明时 complete=false。不得因讲解自己声称完整就判完整。'''
 
 def normalize(text):
@@ -92,7 +92,12 @@ def generate(data, job_id, caller=None):
     if draft.target_id != data['target']['id']:
         raise RuntimeError('讲解目标不匹配，未保存错误结果。请重试。')
     valid,rejected=validate_steps(draft,data)
-    checks=caller('proof_check',{'context':data,'explanation':{**draft.model_dump(),'steps':[s.model_dump() for s in valid]}},Checks,job_id) if valid else Checks(checks=[],complete=False,completeness_reason='没有通过引用检查的步骤。')
+    if rejected:
+        repair=caller('proof_explain',{'context':data,'previous':draft.model_dump(),'repair_instruction':'修复所有步骤的引用与前提，不删去原文存在的推导。每个 citations.quote 必须是给定 evidence.text 的逐字连续片段，保留原始符号与语言，不翻译引文。prerequisites 只能是给定 target 或 prerequisites 节点 id；数学条件在 explanation 中写，不能自造条件 id；前一步骤不是理论节点，不填入此字段。每个步骤 id 唯一。'},Explanation,job_id)
+        if repair.target_id==data['target']['id']:
+            draft=repair
+            valid,rejected=validate_steps(draft,data)
+    checks=caller('proof_check' ,{'context':data,'explanation':{**draft.model_dump(),'steps':[s.model_dump() for s in valid]}},Checks,job_id) if valid else Checks(checks=[],complete=False,completeness_reason='没有通过引用检查的步骤。')
     result=[]
     for step in valid:
         matches=[c for c in checks.checks if c.id==step.id]
