@@ -119,7 +119,7 @@ export default function Theory({
       </div>
       <div className="reading-mode" role="group" aria-label="论文阅读模式">
         <strong>阅读模式</strong><div className="reading-segments">{([['auto','自动选择'],['theory','理论与证明'],['method','方法与实验']] as const).map(([value,label])=><button key={value} aria-pressed={readingMode===value} onClick={()=>setReadingMode(value)}>{label}</button>)}</div>
-        <p>自动模式根据已提取内容选择：有正式结果时阅读理论；没有时阅读方法。可随时切换，不需要重新分析论文。</p>
+        <p>自动推荐适合当前论文的阅读方式：梳理理论与证明，或理解方法与实验。你也可以手动切换。</p>
       </div>
       <div className="reading-controls">
         <label>当前阅读论文 <select value={papers.some(p=>p.id===currentPaper)?currentPaper:""} onChange={e=>setCurrentPaper(e.target.value)}><option value="">全部论文</option>{papers.map(p=><option key={p.id} value={p.id}>{p.metadata.title}</option>)}</select></label>
@@ -128,7 +128,7 @@ export default function Theory({
       </div>
       {isDemo && (
         <p className="theory-demo-note">
-          教学演示：以下定义、引理、定理及证明为原创数学样例，用于体验证据溯源和学习路径，不是真实论文成果，也不证明对应方法的实际效果。
+          教学演示：通过原创数学样例，体验定义、引理与定理之间的联系，跟随学习路径理解证明，并追溯每一步的原文依据。
         </p>
       )}
       {papers.filter(p=>!papers.some(p=>p.id===currentPaper)||p.id===currentPaper).map((paper) => {
