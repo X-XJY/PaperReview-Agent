@@ -36,6 +36,8 @@ def init():
         CREATE INDEX IF NOT EXISTS jobs_queue ON jobs(status, created);
         CREATE TABLE IF NOT EXISTS proof_tasks(id TEXT PRIMARY KEY, job TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE, paper TEXT NOT NULL, target TEXT NOT NULL, fingerprint TEXT NOT NULL, context TEXT NOT NULL, status TEXT NOT NULL, result TEXT, error TEXT, created REAL NOT NULL, UNIQUE(job,fingerprint));
         CREATE INDEX IF NOT EXISTS proof_queue ON proof_tasks(status,created);
+        CREATE TABLE IF NOT EXISTS study_tasks(id TEXT PRIMARY KEY, job TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE, paper TEXT NOT NULL, target TEXT NOT NULL, fingerprint TEXT NOT NULL, context TEXT NOT NULL, status TEXT NOT NULL, result TEXT, error TEXT, created REAL NOT NULL, attempts INTEGER NOT NULL, UNIQUE(job,fingerprint));
+        CREATE INDEX IF NOT EXISTS study_queue ON study_tasks(status,created);
         CREATE TABLE IF NOT EXISTS cache(key TEXT PRIMARY KEY, value TEXT NOT NULL, created REAL NOT NULL);
         CREATE TABLE IF NOT EXISTS revisions(id TEXT PRIMARY KEY, job TEXT NOT NULL, paper TEXT NOT NULL, before_json TEXT NOT NULL, after_json TEXT NOT NULL, created REAL NOT NULL);
         CREATE TABLE IF NOT EXISTS learning_progress(job TEXT NOT NULL, paper TEXT NOT NULL, node TEXT NOT NULL, fingerprint TEXT NOT NULL, status TEXT NOT NULL, updated REAL NOT NULL, PRIMARY KEY(job,paper,node));

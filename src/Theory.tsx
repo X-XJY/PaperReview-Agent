@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Paper, Job } from "./types";
 import EvidenceText from "./LazyEvidenceText";
 import Graph from "./Graph";
+import StudyCoach from "./StudyCoach";
 import ProofWalkthrough from "./ProofWalkthrough";
 import { BookOpen, ChevronDown } from "lucide-react";
 import MethodStudy from "./MethodStudy";
@@ -323,6 +324,7 @@ export default function Theory({
                       <small>{kinds[n.kind]}</small>
                       <h4>{n.label}</h4>
                       <EvidenceText text={n.statement} />
+                      <StudyCoach jobId={jobId} paper={paper} node={n} onEvidence={onEvidence} onReview={id=>chooseTarget(paper,id,false)}/>
                       {n.conditions.length > 0 && (
                         <>
                           <strong>适用前提</strong>

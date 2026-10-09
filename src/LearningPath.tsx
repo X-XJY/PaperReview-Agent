@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type { Paper } from "./types";
 import type { StudyNode as Node } from "./studyNodes";
+import StudyCoach from "./StudyCoach";
 import EvidenceText from "./LazyEvidenceText";
 type State = "not_started" | "review" | "mastered";
 type Progress = {
@@ -154,6 +155,7 @@ export default function LearningPath({
                 <EvidenceText text={n.statement} />
               </div>
             )}
+            <StudyCoach jobId={jobId} paper={paper} node={n} onEvidence={onEvidence} onReview={id=>{const review=availableNodes.find(x=>x.id===id);if(review)onEvidence(review.evidence_ids);}}/>
             <label>
               学习状态{" "}
               <select
