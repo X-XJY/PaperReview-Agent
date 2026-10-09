@@ -1,4 +1,4 @@
-import {useEffect,useState} from 'react';
+import {useEffect,useState,useRef} from 'react';
 import {api,download} from './api';
 import type {Paper} from './types';
 import EvidenceText from './LazyEvidenceText';
@@ -7,6 +7,7 @@ type Answer={steps:Step[];missing:string[];complete:boolean;completeness_reason:
 type Task={status:string;result:Answer|null;error:string|null};
 export default function StructuredProof({paper,target,jobId,onEvidence}:{paper:Paper;target:string;jobId:string;onEvidence:(ids:string[])=>void}) {
  const [task,setTask]=useState<Task>({status:'idle',result:null,error:null});
+ const disclosure=useRef<HTMLDetailsElement>(null);
  const [error,setError]=useState(''); const [busy,setBusy]=useState(false);
  const node=paper.theory!.nodes.find(n=>n.id===target)!;
  const path=`/jobs/${jobId}/papers/${paper.id}/proof/${encodeURIComponent(target)}`;
@@ -22,7 +23,7 @@ export default function StructuredProof({paper,target,jobId,onEvidence}:{paper:P
  if(!formal)return null;
  const result=task.result;
  return <section className="structured-proof" aria-label="完整证明讲解">
-  <h4>完整证明讲解</h4><p>自动拆解推导、公式与关键跳步，逐项检查引用和语义。结果会保存，重复打开不会重新生成。</p>
+  <details className="proof-disclosure" ref={disclosure} open><summary><h4>完整证明讲解</h4><span className="proof-collapse-hint">收起讲解 ↑</span><span className="proof-expand-hint">展开讲解 ↓</span></summary><p>自动拆解推导、公式与关键跳步，逐项检查引用和语义。结果会保存，重复打开不会重新生成。</p>
   {jobId==='local-demo'?<p>完整 AI 讲解需要连接后端；下方可直接阅读示例原文步骤。</p>:<button disabled={busy||['queued','running','completed'].includes(task.status)} onClick={start}>{busy?'提交中…':task.status==='queued'?'已排队，等待讲解':task.status==='running'?'正在生成并自动核验…':task.status==='completed'?'已保存讲解':'生成完整证明讲解'}</button>}
   {(error||task.error)&&<p role="alert">{error||task.error}</p>}
   {result&&<><p role="status"><strong>{result.complete?'自动检查：证明覆盖完整':'自动检查：证明覆盖仍有缺口'}</strong> · {result.completeness_reason}</p><p className="muted">{result.notice}</p>
@@ -33,5 +34,7 @@ export default function StructuredProof({paper,target,jobId,onEvidence}:{paper:P
    {result.missing.length>0&&<div><strong>尚未解决的证明缺口</strong>{result.missing.map((m,i)=><p key={i}>{m}</p>)}</div>}
    <button onClick={()=>download(`${node.label}-证明讲解.md`,[`# ${node.label}`,`目标：${node.statement}`,`前提：${node.conditions.join('；')}`,result.notice,...result.steps.flatMap((s,i)=>[`## 步骤 ${i+1}：${s.title}`,`${s.kind==='source'?'原文步骤':'教学补充'} · ${s.status}`,s.explanation,s.formula,`规则：${s.rule}`,`跳步：${s.jump_explanation}`,...s.citations.map(c=>`[${c.evidence_id}] ${c.quote}`)]),`结论：${node.statement}`,'## 证明缺口',...result.missing].join('\n\n'))}>导出证明讲解</button>
   </>}
+  <button className="proof-finish" onClick={()=>{const panel=disclosure.current;if(!panel)return;panel.open=false;requestAnimationFrame(()=>{const next=panel.parentElement?.nextElementSibling as HTMLElement|null;if(next){next.setAttribute('tabindex','-1');next.focus({preventScroll:true});next.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});}else panel.querySelector('summary')?.focus();});}}>收起讲解，继续阅读 ↓</button>
+  </details>
  </section>;
 }
