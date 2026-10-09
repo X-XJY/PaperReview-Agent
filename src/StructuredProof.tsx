@@ -24,7 +24,7 @@ export default function StructuredProof({paper,target,jobId,onEvidence}:{paper:P
  const result=task.result;
  return <section className="structured-proof" aria-label="完整证明讲解">
   <details className="proof-disclosure" ref={disclosure} open><summary><h4>完整证明讲解</h4><span className="proof-collapse-hint">收起讲解 ↑</span><span className="proof-expand-hint">展开讲解 ↓</span></summary><p>自动拆解推导、公式与关键跳步，逐项检查引用和语义。结果会保存，重复打开不会重新生成。</p>
-  {jobId==='local-demo'?<p>完整 AI 讲解需要连接后端；下方可直接阅读示例原文步骤。</p>:<button disabled={busy||['queued','running','completed'].includes(task.status)} onClick={start}>{busy?'提交中…':task.status==='queued'?'已排队，等待讲解':task.status==='running'?'正在生成并自动核验…':task.status==='completed'?'已保存讲解':'生成完整证明讲解'}</button>}
+  {jobId==='local-demo'?<p>完整 AI 讲解需要连接后端；下方可直接阅读示例原文步骤。</p>:task.status!=='completed'&&<button disabled={busy||['queued','running'].includes(task.status)} onClick={start}>{busy?'提交中…':task.status==='queued'?'已排队，等待讲解':task.status==='running'?'正在生成并自动核验…':'生成完整证明讲解'}</button>}
   {(error||task.error)&&<p role="alert">{error||task.error}</p>}
   {result&&<><p role="status"><strong>{result.complete?'自动检查：证明覆盖完整':'自动检查：证明覆盖仍有缺口'}</strong> · {result.completeness_reason}</p><p className="muted">{result.notice}</p>
    <article><h5>目标</h5><EvidenceText text={node.statement}/><button onClick={()=>onEvidence(node.evidence_ids)}>查看目标依据</button></article>
