@@ -34,7 +34,6 @@ export default function StructuredProof({paper,target,jobId,onEvidence}:{paper:P
    {result.missing.length>0&&<div><strong>尚未解决的证明缺口</strong>{result.missing.map((m,i)=><p key={i}>{m}</p>)}</div>}
    <button onClick={()=>download(`${node.label}-证明讲解.md`,[`# ${node.label}`,`目标：${node.statement}`,`前提：${node.conditions.join('；')}`,result.notice,...result.steps.flatMap((s,i)=>[`## 步骤 ${i+1}：${s.title}`,`${s.kind==='source'?'原文步骤':'教学补充'} · ${s.status}`,s.explanation,s.formula,`规则：${s.rule}`,`跳步：${s.jump_explanation}`,...s.citations.map(c=>`[${c.evidence_id}] ${c.quote}`)]),`结论：${node.statement}`,'## 证明缺口',...result.missing].join('\n\n'))}>导出证明讲解</button>
   </>}
-  <button className="proof-finish" onClick={()=>{const panel=disclosure.current;if(!panel)return;panel.open=false;requestAnimationFrame(()=>{const next=panel.parentElement?.nextElementSibling as HTMLElement|null;if(next){next.setAttribute('tabindex','-1');next.focus({preventScroll:true});next.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});}else panel.querySelector('summary')?.focus();});}}>收起讲解，继续阅读 ↓</button>
   </details>
  </section>;
 }
